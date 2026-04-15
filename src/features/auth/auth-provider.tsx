@@ -9,6 +9,7 @@ import {
 } from "react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
+import { ensureUserDocument } from "@/lib/firebase/user";
 
 interface AuthContextValue {
   user: User | null;
@@ -27,6 +28,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false);
+
+      // Create / update user document in Firestore (non-blocking)
+      if (firebaseUser && !firebaseUser.isAnonymous) {
+        ensureUserDocument(firebaseUser).catch((err) =>
+          console.warn("Failed to sync user profile:", err)
+        );
+      }
     });
     return unsubscribe;
   }, []);

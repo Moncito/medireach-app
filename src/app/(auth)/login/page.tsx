@@ -38,7 +38,7 @@ export default function LoginPage() {
     setAuthInProgress(true);
     try {
       await signInWithEmail(email, password);
-      navigateTo("/");
+      navigateTo("/dashboard");
     } catch (err) {
       if (err instanceof FirebaseError) {
         setError(firebaseErrorMap[err.code] || "Something went wrong. Please try again.");
@@ -58,7 +58,7 @@ export default function LoginPage() {
     setAuthInProgress(true);
     try {
       await signInWithGoogle();
-      navigateTo("/");
+      navigateTo("/dashboard");
     } catch (err) {
       if (err instanceof FirebaseError && err.code !== "auth/popup-closed-by-user") {
         setError("Google sign-in failed. Please try again.");
@@ -76,7 +76,7 @@ export default function LoginPage() {
     setAuthInProgress(true);
     try {
       await signInAsGuest();
-      navigateTo("/");
+      navigateTo("/dashboard");
     } catch {
       setError("Guest sign-in failed. Please try again.");
     } finally {

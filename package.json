@@ -17,6 +17,7 @@
   "author": "MediReach Team",
   "license": "MIT",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@gsap/react": "^2.1.2",
     "clsx": "^2.1.1",
     "firebase": "^12.12.0",
@@ -27,6 +28,7 @@
     "next-pwa": "^5.6.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
