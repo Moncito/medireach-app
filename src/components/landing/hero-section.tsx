@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import gsap from "gsap";
+import { TransitionLink } from "@/components/ui/transition-provider";
 
 export function HeroSection() {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -57,13 +57,13 @@ export function HeroSection() {
 
           {/* CTAs */}
           <div className="mt-12 flex flex-col sm:flex-row gap-4">
-            <Link href="/symptom-checker" className="hero-cta btn-primary text-base px-8 py-3.5 shadow-glow" style={{ opacity: 0 }}>
+            <TransitionLink href="/symptom-checker" className="hero-cta btn-primary text-base px-8 py-3.5 shadow-glow" style={{ opacity: 0 }}>
               Check Symptoms
               <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link href="/first-aid" className="hero-cta btn-secondary text-base px-8 py-3.5" style={{ opacity: 0 }}>
+            </TransitionLink>
+            <TransitionLink href="/first-aid" className="hero-cta btn-secondary text-base px-8 py-3.5" style={{ opacity: 0 }}>
               First Aid Guides
-            </Link>
+            </TransitionLink>
           </div>
 
           {/* Floating pills */}

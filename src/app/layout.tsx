@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit, DM_Sans, Space_Mono } from "next/font/google";
-import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
+import { AuthProvider } from "@/features/auth/auth-provider";
+import { TransitionProvider } from "@/components/ui/transition-provider";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -53,9 +53,9 @@ export default function RootLayout({
       className={`${outfit.variable} ${dmSans.variable} ${spaceMono.variable}`}
     >
       <body className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <AuthProvider>
+          <TransitionProvider>{children}</TransitionProvider>
+        </AuthProvider>
       </body>
     </html>
   );
