@@ -7,17 +7,23 @@
     border-color: theme("colors.border");
   }
 
+  ::selection {
+    background-color: rgba(255, 107, 53, 0.15);
+    color: theme("colors.foreground");
+  }
+
   body {
     background-color: theme("colors.background");
     color: theme("colors.foreground");
     font-family: var(--font-dm-sans), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-outfit), system-ui, sans-serif;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   code, pre, .font-mono {
@@ -27,28 +33,81 @@
 
 @layer components {
   .container-app {
-    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
+  }
+
+  .container-narrow {
+    @apply mx-auto w-full max-w-5xl px-5 sm:px-8 lg:px-10;
   }
 
   .card {
-    @apply rounded-2xl bg-white border border-border shadow-soft p-5;
+    @apply rounded-3xl bg-white/70 backdrop-blur-sm border border-white/60 shadow-soft p-6 transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-elevated hover:-translate-y-1 hover:bg-white/90;
+  }
+
+  .glass {
+    @apply bg-white/60 backdrop-blur-xl border border-white/40 shadow-soft;
+  }
+
+  .glass-dark {
+    @apply bg-dark/60 backdrop-blur-xl border border-dark-border/40;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-accent-coral px-5 py-2.5 text-sm font-medium text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2.5 rounded-2xl bg-accent-coral px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-white px-5 py-2.5 text-sm font-medium text-foreground transition-all hover:bg-surface active:scale-[0.98] disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2.5 rounded-2xl border border-border bg-white/80 backdrop-blur-sm px-6 py-3 text-sm font-semibold text-foreground transition-all duration-300 hover:bg-white hover:shadow-card hover:border-transparent active:scale-[0.98] disabled:opacity-50;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-muted transition-all hover:bg-surface active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-muted transition-all duration-200 hover:text-foreground hover:bg-surface active:scale-[0.98];
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r;
+  }
+
+  .section-label {
+    @apply inline-flex items-center gap-2 rounded-full border border-border bg-white/80 backdrop-blur-sm px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .mesh-gradient {
+    background: 
+      radial-gradient(ellipse at 20% 50%, rgba(255,107,53,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(16,185,129,0.06) 0%, transparent 50%);
+  }
+
+  .mesh-gradient-strong {
+    background: 
+      radial-gradient(ellipse at 20% 50%, rgba(255,107,53,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.10) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(16,185,129,0.10) 0%, transparent 50%);
+  }
+
+  .dot-pattern {
+    background-image: radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .line-gradient {
+    background: linear-gradient(to bottom, theme("colors.border"), transparent);
+    width: 1px;
+  }
+
+  /* Smooth scroll */
+  html {
+    scroll-behavior: smooth;
   }
 }

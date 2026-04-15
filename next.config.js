@@ -6,14 +6,18 @@ const withPWA = require("next-pwa")({
   disable: process.env.NODE_ENV === "development",
 });
 
-const nextConfig = withPWA({
+const baseConfig = {
   reactStrictMode: true,
+  transpilePackages: ["gsap"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "firebasestorage.googleapis.com" },
     ],
   },
-});
+};
+
+const nextConfig =
+  process.env.NODE_ENV === "production" ? withPWA(baseConfig) : baseConfig;
 
 module.exports = nextConfig;

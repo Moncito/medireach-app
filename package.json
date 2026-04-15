@@ -8,12 +8,19 @@
     "start": "next start",
     "lint": "next lint"
   },
-  "keywords": ["healthcare", "pwa", "ai", "nextjs"],
+  "keywords": [
+    "healthcare",
+    "pwa",
+    "ai",
+    "nextjs"
+  ],
   "author": "MediReach Team",
   "license": "MIT",
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "clsx": "^2.1.1",
     "firebase": "^12.12.0",
+    "gsap": "^3.15.0",
     "lucide-react": "^1.8.0",
     "next": "^14.2.35",
     "next-intl": "^4.9.1",
