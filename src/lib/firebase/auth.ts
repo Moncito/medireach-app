@@ -4,6 +4,9 @@ import {
   signInWithPopup,
   signInAnonymously,
   GoogleAuthProvider,
+  EmailAuthProvider,
+  linkWithCredential,
+  linkWithPopup,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
   updateProfile,
@@ -22,12 +25,28 @@ export async function signUpWithEmail(
   password: string,
   displayName: string
 ) {
-  const credential = await createUserWithEmailAndPassword(auth, email, password);
+  const currentUser = auth.currentUser;
+  let credential;
+
+  if (currentUser?.isAnonymous) {
+    // Link anonymous account to email/password
+    const emailCred = EmailAuthProvider.credential(email, password);
+    credential = await linkWithCredential(currentUser, emailCred);
+  } else {
+    credential = await createUserWithEmailAndPassword(auth, email, password);
+  }
+
   await updateProfile(credential.user, { displayName });
   return credential;
 }
 
 export async function signInWithGoogle() {
+  const currentUser = auth.currentUser;
+
+  if (currentUser?.isAnonymous) {
+    // Link anonymous account to Google
+    return linkWithPopup(currentUser, googleProvider);
+  }
   return signInWithPopup(auth, googleProvider);
 }
 
@@ -45,9 +64,11 @@ export async function resetPassword(email: string) {
 
 export function getInitials(user: User | null): string {
   if (!user) return "?";
-  if (user.displayName) {
-    return user.displayName
+  const name = user.displayName?.trim();
+  if (name) {
+    return name
       .split(" ")
+      .filter(Boolean)
       .map((n) => n[0])
       .join("")
       .toUpperCase()

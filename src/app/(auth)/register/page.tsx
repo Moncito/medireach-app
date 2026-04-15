@@ -40,6 +40,7 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (loading || googleLoading) return;
     setError("");
     if (!validate()) return;
 
@@ -59,6 +60,7 @@ export default function RegisterPage() {
   }
 
   async function handleGoogle() {
+    if (loading || googleLoading) return;
     setError("");
     setGoogleLoading(true);
     try {

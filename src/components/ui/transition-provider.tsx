@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   type ReactNode,
   type MouseEvent,
@@ -41,8 +42,33 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
 
   /* ---- Enter animation (runs on every pathname change) ---- */
   const lastPath = useRef(pathname);
-  // We use a layout-effect-like approach via GSAP's onComplete
-  // but for the enter animation we rely on the content wrapper mounting
+
+  useEffect(() => {
+    if (pathname === lastPath.current) return;
+    lastPath.current = pathname;
+
+    const el = contentRef.current;
+    if (!el) {
+      isAnimating.current = false;
+      return;
+    }
+
+    gsap.fromTo(
+      el,
+      { opacity: 0, y: 18, scale: 0.99 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.45,
+        ease: "power2.out",
+        delay: 0.05,
+        onComplete: () => {
+          isAnimating.current = false;
+        },
+      }
+    );
+  }, [pathname]);
 
   const navigateTo = useCallback(
     (href: string) => {
@@ -59,7 +85,7 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Exit animation
+      // Exit animation — enter is handled by useEffect on pathname change
       gsap.to(el, {
         opacity: 0,
         y: -12,
@@ -68,25 +94,6 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
         ease: "power2.in",
         onComplete: () => {
           router.push(href);
-
-          // After a brief delay for the new route to render, play enter
-          requestAnimationFrame(() => {
-            gsap.fromTo(
-              el,
-              { opacity: 0, y: 18, scale: 0.99 },
-              {
-                opacity: 1,
-                y: 0,
-                scale: 1,
-                duration: 0.45,
-                ease: "power2.out",
-                delay: 0.05,
-                onComplete: () => {
-                  isAnimating.current = false;
-                },
-              }
-            );
-          });
         },
       });
     },
@@ -122,14 +129,40 @@ export function TransitionLink({
   ...rest
 }: TransitionLinkProps) {
   const { navigateTo } = usePageTransition();
-  const hrefString = typeof href === "string" ? href : href.pathname ?? "/";
+
+  // Build full href string, preserving search & hash from UrlObject
+  const hrefString =
+    typeof href === "string"
+      ? href
+      : `${href.pathname ?? "/"}${href.search ? `?${href.search}` : ""}${
+          href.hash ? `#${href.hash}` : ""
+        }`;
 
   function handleClick(e: MouseEvent<HTMLAnchorElement>) {
     // Let modifier-key clicks behave normally (new tab, etc.)
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
-    e.preventDefault();
+    // Respect already-prevented events
+    if (e.defaultPrevented) return;
+
+    // Skip for target or download attributes
+    const anchor = e.currentTarget;
+    if (anchor.getAttribute("target") && anchor.getAttribute("target") !== "_self") return;
+    if (anchor.hasAttribute("download")) return;
+
+    // Skip for external URLs
+    try {
+      const url = new URL(hrefString, window.location.origin);
+      if (url.origin !== window.location.origin) return;
+    } catch {
+      return;
+    }
+
+    // Let onClick handler cancel navigation via preventDefault
     onClick?.(e);
+    if (e.defaultPrevented) return;
+
+    e.preventDefault();
     navigateTo(hrefString);
   }
 

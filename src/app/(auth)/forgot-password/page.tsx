@@ -9,7 +9,6 @@ import { Loader2, ArrowLeft, Mail } from "lucide-react";
 import { TransitionLink } from "@/components/ui/transition-provider";
 
 const firebaseErrorMap: Record<string, string> = {
-  "auth/user-not-found": "No account found with this email.",
   "auth/invalid-email": "Please enter a valid email address.",
   "auth/too-many-requests": "Too many attempts. Please try again later.",
 };
@@ -29,6 +28,11 @@ export default function ForgotPasswordPage() {
       setSent(true);
     } catch (err) {
       if (err instanceof FirebaseError) {
+        // Treat "user-not-found" as success to prevent account enumeration
+        if (err.code === "auth/user-not-found") {
+          setSent(true);
+          return;
+        }
         setError(firebaseErrorMap[err.code] || "Something went wrong. Please try again.");
       } else {
         setError("Something went wrong. Please try again.");

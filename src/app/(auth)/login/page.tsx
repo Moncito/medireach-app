@@ -28,11 +28,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [guestLoading, setGuestLoading] = useState(false);
+  const [authInProgress, setAuthInProgress] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (authInProgress) return;
     setError("");
     setLoading(true);
+    setAuthInProgress(true);
     try {
       await signInWithEmail(email, password);
       navigateTo("/");
@@ -44,12 +47,15 @@ export default function LoginPage() {
       }
     } finally {
       setLoading(false);
+      setAuthInProgress(false);
     }
   }
 
   async function handleGoogle() {
+    if (authInProgress) return;
     setError("");
     setGoogleLoading(true);
+    setAuthInProgress(true);
     try {
       await signInWithGoogle();
       navigateTo("/");
@@ -59,12 +65,15 @@ export default function LoginPage() {
       }
     } finally {
       setGoogleLoading(false);
+      setAuthInProgress(false);
     }
   }
 
   async function handleGuest() {
+    if (authInProgress) return;
     setError("");
     setGuestLoading(true);
+    setAuthInProgress(true);
     try {
       await signInAsGuest();
       navigateTo("/");
@@ -72,6 +81,7 @@ export default function LoginPage() {
       setError("Guest sign-in failed. Please try again.");
     } finally {
       setGuestLoading(false);
+      setAuthInProgress(false);
     }
   }
 

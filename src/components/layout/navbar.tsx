@@ -30,9 +30,13 @@ export function Navbar() {
   }, []);
 
   async function handleSignOut() {
-    await signOut();
-    setShowUserMenu(false);
-    navigateTo("/");
+    try {
+      await signOut();
+      setShowUserMenu(false);
+      navigateTo("/");
+    } catch (err) {
+      console.error("Sign out failed:", err);
+    }
   }
 
   return (
@@ -144,7 +148,11 @@ export function Navbar() {
               </TransitionLink>
             ))}
             <hr className="my-3 border-border/50" />
-            {user ? (
+            {loading ? (
+              <div className="flex justify-center py-4">
+                <div className="h-8 w-32 rounded-xl bg-surface animate-pulse" />
+              </div>
+            ) : user ? (
               <>
                 <div className="flex items-center gap-3 px-4 py-2 mb-1">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-coral to-accent-coral-light text-xs font-bold text-white">
@@ -161,7 +169,7 @@ export function Navbar() {
                   </TransitionLink>
                 )}
                 <button
-                  onClick={() => { handleSignOut(); setOpen(false); }}
+                  onClick={() => { handleSignOut(); }}
                   className="w-full rounded-xl px-4 py-3.5 text-base font-medium text-red-600 hover:bg-red-50 transition-colors text-left mt-1"
                 >
                   Sign Out
