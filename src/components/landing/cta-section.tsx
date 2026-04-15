@@ -1,8 +1,8 @@
 "use client";
 
 import { Reveal } from "@/components/ui/reveal";
-import Link from "next/link";
 import { ArrowRight, Heart } from "lucide-react";
+import { TransitionLink } from "@/components/ui/transition-provider";
 
 export function CTASection() {
   return (
@@ -33,19 +33,19 @@ export function CTASection() {
               </p>
 
               <div className="mt-10 flex flex-col sm:flex-row gap-4">
-                <Link
+                <TransitionLink
                   href="/register"
                   className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-white px-8 py-3.5 text-base font-semibold text-dark transition-all duration-300 hover:shadow-elevated hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Start For Free
                   <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
+                </TransitionLink>
+                <TransitionLink
                   href="/symptom-checker"
                   className="inline-flex items-center justify-center gap-2.5 rounded-2xl border border-white/20 px-8 py-3.5 text-base font-semibold text-white/90 transition-all duration-300 hover:bg-white/10 active:scale-[0.98]"
                 >
                   Try Symptom Checker
-                </Link>
+                </TransitionLink>
               </div>
             </div>
           </div>

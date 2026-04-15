@@ -1,5 +1,5 @@
 import { Heart } from "lucide-react";
-import Link from "next/link";
+import { TransitionLink } from "@/components/ui/transition-provider";
 
 const footerLinks = [
   { href: "/symptom-checker", label: "Symptom Checker" },
@@ -25,13 +25,13 @@ export function Footer() {
 
             <div className="flex flex-wrap gap-x-6 gap-y-2">
               {footerLinks.map((link) => (
-                <Link
+                <TransitionLink
                   key={link.href}
                   href={link.href}
                   className="text-sm text-muted transition-colors hover:text-foreground"
                 >
                   {link.label}
-                </Link>
+                </TransitionLink>
               ))}
             </div>
           </div>
@@ -43,9 +43,9 @@ export function Footer() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-muted-light">
               © {new Date().getFullYear()} MediReach — Not a substitute for professional medical advice.{" "}
-              <Link href="/disclaimer" className="underline underline-offset-2 hover:text-muted">
+              <TransitionLink href="/disclaimer" className="underline underline-offset-2 hover:text-muted">
                 Disclaimer
-              </Link>
+              </TransitionLink>
             </p>
             <p className="text-xs text-muted-light">
               Built with care for SDG 3: Good Health and Well-being
