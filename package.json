@@ -1,0 +1,35 @@
+{
+  "name": "medireach",
+  "version": "1.0.0",
+  "description": "AI-powered healthcare companion PWA",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": ["healthcare", "pwa", "ai", "nextjs"],
+  "author": "MediReach Team",
+  "license": "MIT",
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "firebase": "^12.12.0",
+    "lucide-react": "^1.8.0",
+    "next": "^14.2.35",
+    "next-intl": "^4.9.1",
+    "next-pwa": "^5.6.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "autoprefixer": "^10.5.0",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.3",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^6.0.2"
+  }
+}
