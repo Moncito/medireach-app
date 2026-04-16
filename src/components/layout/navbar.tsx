@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, Menu, X, Sparkles, LogOut, User } from "lucide-react";
+import { Heart, Menu, X, Sparkles, LogOut, User, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/features/auth/auth-provider";
 import { signOut, getInitials } from "@/lib/firebase/auth";
 import { TransitionLink, usePageTransition } from "@/components/ui/transition-provider";
@@ -76,6 +76,14 @@ export function Navbar() {
           {loading ? (
             <div className="h-9 w-20 rounded-xl bg-surface animate-pulse" />
           ) : user ? (
+            <div className="flex items-center gap-2">
+              <TransitionLink
+                href="/dashboard"
+                className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground hover:bg-surface"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </TransitionLink>
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
@@ -109,6 +117,7 @@ export function Navbar() {
                   </button>
                 </div>
               )}
+            </div>
             </div>
           ) : (
             <>
@@ -162,6 +171,14 @@ export function Navbar() {
                     {isGuest ? "Guest User" : user.displayName || user.email}
                   </span>
                 </div>
+                <TransitionLink
+                  href="/dashboard"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 rounded-xl px-4 py-3.5 text-base font-medium text-foreground hover:bg-surface transition-colors"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </TransitionLink>
                 {isGuest && (
                   <TransitionLink href="/register" onClick={() => setOpen(false)} className="btn-primary text-base py-3.5 mt-2">
                     <Sparkles className="h-4 w-4" />

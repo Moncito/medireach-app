@@ -47,7 +47,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await signUpWithEmail(email, password, name.trim());
-      navigateTo("/");
+      navigateTo("/dashboard");
     } catch (err) {
       if (err instanceof FirebaseError) {
         setError(firebaseErrorMap[err.code] || "Something went wrong. Please try again.");
@@ -65,7 +65,7 @@ export default function RegisterPage() {
     setGoogleLoading(true);
     try {
       await signInWithGoogle();
-      navigateTo("/");
+      navigateTo("/dashboard");
     } catch (err) {
       if (err instanceof FirebaseError && err.code !== "auth/popup-closed-by-user") {
         setError("Google sign-in failed. Please try again.");
