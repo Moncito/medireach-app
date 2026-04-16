@@ -28,6 +28,7 @@ interface Message {
   content: string;
   severity?: Severity;
   source?: "emergency" | "rules" | "ai";
+  timestamp: number;
 }
 
 interface UsageInfo {
@@ -68,13 +69,17 @@ export function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Fetch initial usage quota
-  useEffect(() => {
+  const fetchUsage = useCallback(() => {
     fetch("/api/symptom-check")
       .then((r) => r.json())
       .then((data) => setUsage({ remaining: data.remaining, limit: data.limit }))
       .catch(() => {});
   }, []);
+
+  // Fetch initial usage quota
+  useEffect(() => {
+    fetchUsage();
+  }, [fetchUsage]);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -102,7 +107,7 @@ export function ChatInterface() {
         content: m.content,
         ...(m.severity ? { severity: m.severity } : {}),
         ...(m.source ? { source: m.source } : {}),
-        timestamp: Date.now(),
+        timestamp: m.timestamp,
       }));
 
       try {
@@ -130,6 +135,7 @@ export function ChatInterface() {
       id: crypto.randomUUID(),
       role: "user",
       content: content.trim(),
+      timestamp: Date.now(),
     };
 
     const updatedMessages = [...messages, userMessage];
@@ -178,6 +184,7 @@ export function ChatInterface() {
         content: data.message,
         severity: data.severity,
         source: data.source,
+        timestamp: Date.now(),
       };
 
       const finalMessages = [...updatedMessages, assistantMessage];
@@ -194,6 +201,7 @@ export function ChatInterface() {
         id: crypto.randomUUID(),
         role: "assistant",
         content: errorContent,
+        timestamp: Date.now(),
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -218,11 +226,7 @@ export function ChatInterface() {
     setInput("");
     conversationIdRef.current = null;
     inputRef.current?.focus();
-    // Refresh usage on reset
-    fetch("/api/symptom-check")
-      .then((r) => r.json())
-      .then((data) => setUsage({ remaining: data.remaining, limit: data.limit }))
-      .catch(() => {});
+    fetchUsage();
   }
 
   const hasMessages = messages.length > 0;

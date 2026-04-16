@@ -87,7 +87,7 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = item.active && pathname === item.href;
+          const isActive = item.active && (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/')));
           const Icon = item.icon;
 
           if (!item.active) {
@@ -165,6 +165,8 @@ export function Sidebar() {
       <button
         onClick={() => setCollapsed(!collapsed)}
         className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-dark-surface border border-white/10 flex items-center justify-center text-white/50 hover:text-white hover:border-white/20 transition-colors"
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-expanded={!collapsed}
       >
         {collapsed ? (
           <ChevronRight className="w-3 h-3" />

@@ -198,7 +198,7 @@ export default function DashboardPage() {
                 className="rounded-2xl border border-border/60 bg-white/80 p-5 hover:shadow-soft transition-shadow duration-300"
               >
                 <div className={`w-9 h-9 rounded-lg ${tip.bg} flex items-center justify-center mb-3`}>
-                  <Icon className={`w-4.5 h-4.5 ${tip.color}`} />
+                  <Icon className={`w-[18px] h-[18px] ${tip.color}`} />
                 </div>
                 <h3 className="font-heading font-semibold text-foreground text-sm mb-1">
                   {tip.title}

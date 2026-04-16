@@ -21,6 +21,7 @@ import {
   Loader2,
   Stethoscope,
   ChevronRight,
+  X,
 } from "lucide-react";
 
 const severityMeta: Record<
@@ -62,6 +63,7 @@ export function ConversationList() {
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user?.uid || user.isAnonymous) {
@@ -85,11 +87,13 @@ export function ConversationList() {
   async function handleDelete(id: string) {
     if (!user?.uid) return;
     setDeletingId(id);
+    setDeleteError(null);
     try {
       await deleteConversation(user.uid, id);
       setConversations((prev) => prev.filter((c) => c.id !== id));
     } catch (err) {
       console.error("Failed to delete:", err);
+      setDeleteError("Failed to delete conversation. Please try again.");
     } finally {
       setDeletingId(null);
     }
@@ -146,6 +150,14 @@ export function ConversationList() {
 
   return (
     <div className="space-y-3">
+      {deleteError && (
+        <div className="flex items-center justify-between rounded-xl bg-red-50 border border-red-200 px-4 py-2.5 text-sm text-red-600">
+          <span>{deleteError}</span>
+          <button onClick={() => setDeleteError(null)} className="text-red-400 hover:text-red-600 ml-3">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
       {conversations.map((convo) => (
         <ConversationCard
           key={convo.id}

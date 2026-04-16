@@ -4,6 +4,7 @@ import {
   setDoc,
   updateDoc,
   serverTimestamp,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import type { User } from "firebase/auth";
@@ -18,8 +19,13 @@ export interface UserProfile {
   email: string | null;
   photoURL: string | null;
   provider: string;
-  createdAt: Date;
-  lastLoginAt: Date;
+  createdAt: Date | Timestamp;
+  lastLoginAt: Date | Timestamp;
+}
+
+/** Convert a Firestore Timestamp or Date to a plain Date */
+export function toDate(value: Date | Timestamp): Date {
+  return value instanceof Timestamp ? value.toDate() : value;
 }
 
 /* ------------------------------------------------------------------ */

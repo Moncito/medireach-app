@@ -1,6 +1,12 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) {
+  throw new Error(
+    "GEMINI_API_KEY environment variable is not set. Add it to your .env.local file."
+  );
+}
+const genAI = new GoogleGenerativeAI(apiKey);
 
 const systemInstruction = `You are MediReach AI, a compassionate and knowledgeable healthcare assistant. Your role is to help users understand their symptoms and provide general health guidance. You can understand and respond in multiple languages — reply in the same language the user writes in.
 

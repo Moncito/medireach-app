@@ -70,6 +70,14 @@ export function consumeRateLimit(identifier: string): {
   };
 }
 
+/** Refund a rate-limit token when an AI call fails (quota error, etc.) */
+export function refundRateLimit(identifier: string): void {
+  const bucket = buckets.get(identifier);
+  if (bucket && bucket.count > 0) {
+    bucket.count--;
+  }
+}
+
 // Cleanup stale buckets every 10 minutes
 if (typeof setInterval !== "undefined") {
   setInterval(() => {

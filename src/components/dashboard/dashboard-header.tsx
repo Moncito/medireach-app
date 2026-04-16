@@ -40,6 +40,8 @@ export function DashboardHeader() {
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="p-2 -ml-2 rounded-xl text-muted hover:text-foreground hover:bg-surface transition-colors"
+            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={menuOpen}
           >
             {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -57,7 +59,7 @@ export function DashboardHeader() {
         {/* Right section */}
         <div className="flex items-center gap-2">
           {/* Notifications */}
-          <button className="relative p-2 rounded-xl text-muted hover:text-foreground hover:bg-surface transition-colors">
+          <button className="relative p-2 rounded-xl text-muted hover:text-foreground hover:bg-surface transition-colors" aria-label="Notifications">
             <Bell className="w-5 h-5" />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent-coral rounded-full" />
           </button>
@@ -67,6 +69,8 @@ export function DashboardHeader() {
             <button
               onClick={() => setProfileOpen(!profileOpen)}
               className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-surface transition-colors"
+              aria-label="Profile menu"
+              aria-expanded={profileOpen}
             >
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-lavender to-accent-lavender-light flex items-center justify-center">
                 <span className="text-xs font-bold text-white">

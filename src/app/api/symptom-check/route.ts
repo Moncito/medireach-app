@@ -6,7 +6,7 @@ import {
   cleanResponse,
 } from "@/lib/gemini";
 import { triageLocally } from "@/lib/triage-engine";
-import { consumeRateLimit, checkRateLimit } from "@/lib/rate-limit";
+import { consumeRateLimit, checkRateLimit, refundRateLimit } from "@/lib/rate-limit";
 
 interface Message {
   role: "user" | "assistant";
@@ -17,8 +17,15 @@ function getClientIP(req: NextRequest): string {
   return (
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     req.headers.get("x-real-ip") ||
+    req.ip ||
     "anonymous"
   );
+}
+
+function isQuotaError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const msg = error.message.toLowerCase();
+  return msg.includes("429") || msg.includes("quota") || msg.includes("rate limit") || msg.includes("resource exhausted");
 }
 
 export async function GET(req: NextRequest) {
@@ -96,10 +103,7 @@ export async function POST(req: NextRequest) {
       const result = await chat.sendMessage(lastMessage.content);
       responseText = result.response.text();
     } catch (primaryError) {
-      // If primary model hits quota, try fallback model
-      const errMsg =
-        primaryError instanceof Error ? primaryError.message : "";
-      if (errMsg.includes("429") || errMsg.includes("quota")) {
+      if (isQuotaError(primaryError)) {
         console.warn("Primary model quota hit, trying fallback...");
         try {
           const fallbackChat = symptomModelFallback.startChat({
@@ -113,25 +117,26 @@ export async function POST(req: NextRequest) {
           );
           responseText = fallbackResult.response.text();
         } catch (fallbackError) {
-          const fbMsg =
-            fallbackError instanceof Error ? fallbackError.message : "";
-          if (fbMsg.includes("429") || fbMsg.includes("quota")) {
+          if (isQuotaError(fallbackError)) {
+            refundRateLimit(ip);
             return NextResponse.json(
               {
                 error:
                   "AI service is temporarily at capacity. Please wait a minute and try again, or describe common symptoms (headache, fever, cold) for instant rule-based triage.",
                 retryable: true,
                 usage: {
-                  remaining: rateCheck.remaining,
+                  remaining: rateCheck.remaining + 1,
                   limit: rateCheck.limit,
                 },
               },
               { status: 503 }
             );
           }
+          refundRateLimit(ip);
           throw fallbackError;
         }
       } else {
+        refundRateLimit(ip);
         throw primaryError;
       }
     }

@@ -247,11 +247,9 @@ export function triageLocally(
   userMessage: string,
   conversationLength: number
 ): TriageResult | null {
-  const text = userMessage.toLowerCase();
-
   // 1. Always check emergencies (regardless of conversation state)
   for (const rule of EMERGENCY_RULES) {
-    if (rule.keywords.test(text)) {
+    if (rule.keywords.test(userMessage)) {
       return {
         message: rule.response,
         severity: "emergency",
@@ -264,7 +262,7 @@ export function triageLocally(
   for (const rule of SYMPTOM_RULES) {
     if (rule.firstMessageOnly && conversationLength > 0) continue;
 
-    if (rule.pattern.test(text)) {
+    if (rule.pattern.test(userMessage)) {
       let message = rule.response;
       if (rule.followUp) {
         message += `\n\n${rule.followUp}`;

@@ -17,13 +17,17 @@ service cloud.firestore {
 
     // User conversation sub-collection
     match /users/{userId}/conversations/{conversationId} {
-      allow read, write: if request.auth != null
-                         && request.auth.uid == userId
-                         && !(request.auth.token.firebase.sign_in_provider == 'anonymous');
+      function isOwner() {
+        return request.auth != null
+               && request.auth.uid == userId
+               && !(request.auth.token.firebase.sign_in_provider == 'anonymous');
+      }
 
-      // Prevent excessively large documents (safety valve)
-      allow create: if request.resource.data.messages.size() <= 100;
-      allow update: if request.resource.data.messages.size() <= 100;
+      allow read, delete: if isOwner();
+      allow create: if isOwner()
+                    && request.resource.data.messages.size() <= 100;
+      allow update: if isOwner()
+                    && request.resource.data.messages.size() <= 100;
     }
 
     // Block all other access by default

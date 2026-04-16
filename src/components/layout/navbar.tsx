@@ -171,6 +171,14 @@ export function Navbar() {
                     {isGuest ? "Guest User" : user.displayName || user.email}
                   </span>
                 </div>
+                <TransitionLink
+                  href="/dashboard"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 rounded-xl px-4 py-3.5 text-base font-medium text-foreground hover:bg-surface transition-colors"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </TransitionLink>
                 {isGuest && (
                   <TransitionLink href="/register" onClick={() => setOpen(false)} className="btn-primary text-base py-3.5 mt-2">
                     <Sparkles className="h-4 w-4" />

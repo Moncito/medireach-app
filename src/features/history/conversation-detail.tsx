@@ -21,6 +21,10 @@ export function ConversationDetail({ conversationId }: { conversationId: string 
   useEffect(() => {
     if (!user?.uid) return;
 
+    setLoading(true);
+    setError(null);
+    setConversation(null);
+
     getConversation(user.uid, conversationId)
       .then((convo) => {
         if (!convo) {

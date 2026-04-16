@@ -118,17 +118,21 @@ export async function updateConversation(
   messages: StoredMessage[],
   newSeverity?: Severity
 ): Promise<void> {
+  if (messages.length > 100) {
+    throw new Error("Conversation exceeds maximum of 100 messages");
+  }
+
   const ref = doc(db, "users", userId, "conversations", conversationId);
 
-  const existing = await getDoc(ref);
-  const prevSeverity = existing.exists()
-    ? (existing.data().highestSeverity as Severity)
-    : null;
+  const highestSev = messages.reduce<Severity>(
+    (acc, m) => higherSeverity(acc, m.severity ?? null),
+    newSeverity ?? null
+  );
 
   await updateDoc(ref, {
     updatedAt: serverTimestamp(),
     messageCount: messages.length,
-    highestSeverity: higherSeverity(prevSeverity, newSeverity ?? null),
+    highestSeverity: highestSev,
     messages,
   });
 }
