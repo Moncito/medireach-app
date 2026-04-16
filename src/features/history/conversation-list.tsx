@@ -6,6 +6,7 @@ import {
   listConversations,
   deleteConversation,
   type ConversationPreview,
+  type ConversationType,
 } from "@/lib/firebase/conversations";
 import { TransitionLink } from "@/components/ui/transition-provider";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ import {
   Stethoscope,
   ChevronRight,
   X,
+  HeartPulse,
 } from "lucide-react";
 
 const severityMeta: Record<
@@ -64,6 +66,7 @@ export function ConversationList() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<ConversationType | "all">("all");
 
   const load = useCallback(async () => {
     if (!user?.uid || user.isAnonymous) {
@@ -150,6 +153,29 @@ export function ConversationList() {
 
   return (
     <div className="space-y-3">
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-2 mb-4">
+        {([
+          { key: "all" as const, label: "All", icon: MessageSquare },
+          { key: "symptom-checker" as const, label: "Symptom Checks", icon: Stethoscope },
+          { key: "first-aid" as const, label: "First Aid", icon: HeartPulse },
+        ] as const).map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => setFilter(key)}
+            className={cn(
+              "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-colors",
+              filter === key
+                ? "bg-dark text-white"
+                : "bg-surface text-muted hover:text-foreground"
+            )}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {label}
+          </button>
+        ))}
+      </div>
+
       {deleteError && (
         <div className="flex items-center justify-between rounded-xl bg-red-50 border border-red-200 px-4 py-2.5 text-sm text-red-600">
           <span>{deleteError}</span>
@@ -158,14 +184,30 @@ export function ConversationList() {
           </button>
         </div>
       )}
-      {conversations.map((convo) => (
-        <ConversationCard
-          key={convo.id}
-          conversation={convo}
-          onDelete={() => handleDelete(convo.id)}
-          isDeleting={deletingId === convo.id}
-        />
-      ))}
+      {(() => {
+        const filtered = conversations.filter((c) => filter === "all" || c.type === filter);
+        if (filtered.length === 0) {
+          return (
+            <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+              <p className="text-sm text-muted">No conversations match this filter.</p>
+              <button
+                onClick={() => setFilter("all")}
+                className="mt-3 text-xs text-accent-coral hover:underline"
+              >
+                Show all conversations
+              </button>
+            </div>
+          );
+        }
+        return filtered.map((convo) => (
+          <ConversationCard
+            key={convo.id}
+            conversation={convo}
+            onDelete={() => handleDelete(convo.id)}
+            isDeleting={deletingId === convo.id}
+          />
+        ));
+      })()}
     </div>
   );
 }
@@ -197,10 +239,14 @@ function ConversationCard({
         <div
           className={cn(
             "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
-            meta ? meta.iconBg : "bg-accent-lavender/10 text-accent-lavender"
+            conversation.type === "first-aid"
+              ? "bg-accent-coral/10 text-accent-coral"
+              : meta ? meta.iconBg : "bg-accent-lavender/10 text-accent-lavender"
           )}
         >
-          {SevIcon ? (
+          {conversation.type === "first-aid" ? (
+            <HeartPulse className="w-5 h-5" />
+          ) : SevIcon ? (
             <SevIcon className="w-5 h-5" />
           ) : (
             <Stethoscope className="w-5 h-5" />

@@ -112,7 +112,7 @@ export function ChatInterface() {
 
       try {
         if (!conversationIdRef.current) {
-          conversationIdRef.current = await createConversation(user.uid, stored);
+          conversationIdRef.current = await createConversation(user.uid, stored, "symptom-checker");
         } else {
           await updateConversation(
             user.uid,
