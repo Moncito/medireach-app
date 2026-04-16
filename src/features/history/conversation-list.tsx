@@ -184,16 +184,30 @@ export function ConversationList() {
           </button>
         </div>
       )}
-      {conversations
-        .filter((c) => filter === "all" || c.type === filter)
-        .map((convo) => (
-        <ConversationCard
-          key={convo.id}
-          conversation={convo}
-          onDelete={() => handleDelete(convo.id)}
-          isDeleting={deletingId === convo.id}
-        />
-      ))}
+      {(() => {
+        const filtered = conversations.filter((c) => filter === "all" || c.type === filter);
+        if (filtered.length === 0) {
+          return (
+            <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+              <p className="text-sm text-muted">No conversations match this filter.</p>
+              <button
+                onClick={() => setFilter("all")}
+                className="mt-3 text-xs text-accent-coral hover:underline"
+              >
+                Show all conversations
+              </button>
+            </div>
+          );
+        }
+        return filtered.map((convo) => (
+          <ConversationCard
+            key={convo.id}
+            conversation={convo}
+            onDelete={() => handleDelete(convo.id)}
+            isDeleting={deletingId === convo.id}
+          />
+        ));
+      })()}
     </div>
   );
 }

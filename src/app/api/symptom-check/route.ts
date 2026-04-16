@@ -90,55 +90,58 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const chat = symptomModel.startChat({
-      history: messages.slice(0, -1).map((m) => ({
-        role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.content }],
-      })),
-    });
-
     let responseText: string;
 
     try {
-      const result = await chat.sendMessage(lastMessage.content);
-      responseText = result.response.text();
-    } catch (primaryError) {
-      if (isRetryableError(primaryError)) {
-        console.warn("Primary model quota hit, trying fallback...");
-        try {
-          const fallbackChat = symptomModelFallback.startChat({
-            history: messages.slice(0, -1).map((m) => ({
-              role: m.role === "user" ? "user" : "model",
-              parts: [{ text: m.content }],
-            })),
-          });
-          const fallbackResult = await fallbackChat.sendMessage(
-            lastMessage.content
-          );
-          responseText = fallbackResult.response.text();
-        } catch (fallbackError) {
-          if (isRetryableError(fallbackError)) {
-            refundRateLimit(ip);
-            return NextResponse.json(
-              {
-                error:
-                  "AI service is temporarily at capacity. Please wait a minute and try again, or describe common symptoms (headache, fever, cold) for instant rule-based triage.",
-                retryable: true,
-                usage: {
-                  remaining: rateCheck.remaining + 1,
-                  limit: rateCheck.limit,
-                },
-              },
-              { status: 503 }
+      const chat = symptomModel.startChat({
+        history: messages.slice(0, -1).map((m) => ({
+          role: m.role === "user" ? "user" : "model",
+          parts: [{ text: m.content }],
+        })),
+      });
+
+      try {
+        const result = await chat.sendMessage(lastMessage.content);
+        responseText = result.response.text();
+      } catch (primaryError) {
+        if (isRetryableError(primaryError)) {
+          console.warn("Primary model unavailable or rate-limited, trying fallback...", (primaryError as Error).message);
+          try {
+            const fallbackChat = symptomModelFallback.startChat({
+              history: messages.slice(0, -1).map((m) => ({
+                role: m.role === "user" ? "user" : "model",
+                parts: [{ text: m.content }],
+              })),
+            });
+            const fallbackResult = await fallbackChat.sendMessage(
+              lastMessage.content
             );
+            responseText = fallbackResult.response.text();
+          } catch (fallbackError) {
+            if (isRetryableError(fallbackError)) {
+              refundRateLimit(ip);
+              return NextResponse.json(
+                {
+                  error:
+                    "AI service is temporarily at capacity. Please wait a minute and try again, or describe common symptoms (headache, fever, cold) for instant rule-based triage.",
+                  retryable: true,
+                  usage: {
+                    remaining: rateCheck.remaining + 1,
+                    limit: rateCheck.limit,
+                  },
+                },
+                { status: 503 }
+              );
+            }
+            throw fallbackError;
           }
-          refundRateLimit(ip);
-          throw fallbackError;
+        } else {
+          throw primaryError;
         }
-      } else {
-        refundRateLimit(ip);
-        throw primaryError;
       }
+    } catch (error) {
+      refundRateLimit(ip);
+      throw error;
     }
 
     const severity = extractSeverity(responseText);

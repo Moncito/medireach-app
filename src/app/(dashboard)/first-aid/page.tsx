@@ -106,8 +106,9 @@ export default function FirstAidPage() {
             </p>
           </div>
         </>
-      ) : (
-        <>
+      ) : null}
+
+      <div className={activeTab === "guides" ? "" : "hidden"}>
 
       {/* Emergency Numbers Banner */}
       <div className="rounded-2xl bg-gradient-to-r from-red-50 to-orange-50 border border-red-200/50 p-4">
@@ -182,7 +183,7 @@ export default function FirstAidPage() {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Search className="w-10 h-10 text-muted/30 mb-3" />
           <p className="text-sm text-muted">
-            No guides found for &ldquo;{search}&rdquo;
+            No guides found{search.trim() ? <> for &ldquo;{search}&rdquo;</> : ""}
             {activeCategory !== "all" &&
               ` in ${CATEGORIES[activeCategory].label}`}
           </p>
@@ -275,8 +276,7 @@ export default function FirstAidPage() {
           emergency number first.
         </p>
       </div>
-        </>
-      )}
+      </div>
     </div>
   );
 }

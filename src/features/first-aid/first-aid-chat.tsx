@@ -69,7 +69,9 @@ export function FirstAidChat() {
     fetch("/api/first-aid")
       .then((r) => r.json())
       .then((data) => setUsage({ remaining: data.remaining, limit: data.limit }))
-      .catch(() => {});
+      .catch((err) => {
+        console.warn("Failed to fetch first aid usage:", err);
+      });
   }, []);
 
   useEffect(() => {
@@ -134,6 +136,9 @@ export function FirstAidChat() {
       inputRef.current.style.height = "auto";
     }
 
+    const genericError = "I'm sorry, I'm having trouble right now. Please try again in a moment.";
+    let apiError: string | null = null;
+
     try {
       const res = await fetch("/api/first-aid", {
         method: "POST",
@@ -149,7 +154,8 @@ export function FirstAidChat() {
       if (!res.ok) {
         const errorData = await res.json().catch(() => null);
         if (errorData?.usage) setUsage(errorData.usage);
-        throw new Error(errorData?.error || "Failed to get response. Please try again.");
+        apiError = errorData?.error || null;
+        throw new Error(apiError || genericError);
       }
 
       const data = await res.json();
@@ -159,7 +165,7 @@ export function FirstAidChat() {
         id: crypto.randomUUID(),
         role: "assistant",
         content: data.message,
-        source: data.source,
+        source: "first-aid-ai",
         timestamp: Date.now(),
       };
 
@@ -167,10 +173,7 @@ export function FirstAidChat() {
       setMessages(finalMessages);
       saveConversation(finalMessages);
     } catch (err) {
-      const errorContent =
-        err instanceof Error && err.message !== "Failed to get response. Please try again."
-          ? err.message
-          : "I'm sorry, I'm having trouble right now. Please try again in a moment.";
+      const errorContent = apiError || genericError;
       setMessages((prev) => [
         ...prev,
         { id: crypto.randomUUID(), role: "assistant", content: errorContent, timestamp: Date.now() },

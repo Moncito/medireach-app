@@ -69,53 +69,56 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const chat = firstAidModel.startChat({
-      history: messages.slice(0, -1).map((m) => ({
-        role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.content }],
-      })),
-    });
-
     let responseText: string;
 
     try {
-      const result = await chat.sendMessage(lastMessage.content);
-      responseText = result.response.text();
-    } catch (primaryError) {
-      if (isRetryableError(primaryError)) {
-        console.warn("First Aid primary model quota hit, trying fallback...");
-        try {
-          const fallbackChat = firstAidModelFallback.startChat({
-            history: messages.slice(0, -1).map((m) => ({
-              role: m.role === "user" ? "user" : "model",
-              parts: [{ text: m.content }],
-            })),
-          });
-          const fallbackResult = await fallbackChat.sendMessage(lastMessage.content);
-          responseText = fallbackResult.response.text();
-        } catch (fallbackError) {
-          if (isRetryableError(fallbackError)) {
-            refundRateLimit(ip);
-            return NextResponse.json(
-              {
-                error:
-                  "AI service is temporarily at capacity. Please wait a minute and try again.",
-                retryable: true,
-                usage: {
-                  remaining: rateCheck.remaining + 1,
-                  limit: rateCheck.limit,
+      const chat = firstAidModel.startChat({
+        history: messages.slice(0, -1).map((m) => ({
+          role: m.role === "user" ? "user" : "model",
+          parts: [{ text: m.content }],
+        })),
+      });
+
+      try {
+        const result = await chat.sendMessage(lastMessage.content);
+        responseText = result.response.text();
+      } catch (primaryError) {
+        if (isRetryableError(primaryError)) {
+          console.warn("First Aid primary model unavailable or rate-limited, trying fallback...", (primaryError as Error).message);
+          try {
+            const fallbackChat = firstAidModelFallback.startChat({
+              history: messages.slice(0, -1).map((m) => ({
+                role: m.role === "user" ? "user" : "model",
+                parts: [{ text: m.content }],
+              })),
+            });
+            const fallbackResult = await fallbackChat.sendMessage(lastMessage.content);
+            responseText = fallbackResult.response.text();
+          } catch (fallbackError) {
+            if (isRetryableError(fallbackError)) {
+              refundRateLimit(ip);
+              return NextResponse.json(
+                {
+                  error:
+                    "AI service is temporarily at capacity. Please wait a minute and try again.",
+                  retryable: true,
+                  usage: {
+                    remaining: rateCheck.remaining + 1,
+                    limit: rateCheck.limit,
+                  },
                 },
-              },
-              { status: 503 }
-            );
+                { status: 503 }
+              );
+            }
+            throw fallbackError;
           }
-          refundRateLimit(ip);
-          throw fallbackError;
+        } else {
+          throw primaryError;
         }
-      } else {
-        refundRateLimit(ip);
-        throw primaryError;
       }
+    } catch (error) {
+      refundRateLimit(ip);
+      throw error;
     }
 
     const cleaned = cleanResponse(responseText);

@@ -47,7 +47,7 @@ export default function FirstAidGuidePage({
   const guide = getGuideBySlug(params.slug);
 
   if (!guide) {
-    notFound();
+    return notFound();
   }
 
   const Icon = guide.icon;

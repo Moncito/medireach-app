@@ -21,12 +21,13 @@ import type { Severity } from "@/lib/gemini";
 /* ------------------------------------------------------------------ */
 
 export type ConversationType = "symptom-checker" | "first-aid";
+export type MessageSource = "emergency" | "rules" | "ai" | "first-aid-ai";
 
 export interface StoredMessage {
   role: "user" | "assistant";
   content: string;
   severity?: Severity;
-  source?: "emergency" | "rules" | "ai" | "first-aid-ai";
+  source?: MessageSource;
   timestamp: number; // epoch ms — lightweight, easy to serialize
 }
 

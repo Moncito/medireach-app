@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import type { Severity } from "@/lib/gemini";
+import type { MessageSource } from "@/lib/firebase/conversations";
 import { useAuth } from "@/features/auth/auth-provider";
 import { getInitials } from "@/lib/firebase/auth";
 import {
@@ -13,6 +14,7 @@ import {
   Zap,
   Cpu,
   Sparkles,
+  HelpCircle,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -20,7 +22,7 @@ interface MessageBubbleProps {
   role: "user" | "assistant";
   content: string;
   severity?: Severity;
-  source?: "emergency" | "rules" | "ai" | "first-aid-ai";
+  source?: MessageSource;
   isLatest?: boolean;
 }
 
@@ -203,8 +205,14 @@ const sourceConfig = {
   },
 };
 
-function SourceBadge({ source }: { source: "emergency" | "rules" | "ai" | "first-aid-ai" }) {
-  const config = sourceConfig[source];
+const defaultSourceConfig = {
+  label: "AI",
+  icon: HelpCircle,
+  className: "bg-surface text-muted",
+};
+
+function SourceBadge({ source }: { source: MessageSource }) {
+  const config = sourceConfig[source] ?? defaultSourceConfig;
   const Icon = config.icon;
 
   return (

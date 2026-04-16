@@ -296,7 +296,7 @@ export const FIRST_AID_GUIDES: FirstAidGuide[] = [
     whenToCall911: [
       "Always call 911 FIRST (or have someone else call) before starting CPR",
       "The person is unresponsive and not breathing normally",
-      "The person has no pulse",
+      "The person is unresponsive and not breathing normally (do not delay CPR to check for a pulse)",
     ],
     steps: [
       {
@@ -653,7 +653,7 @@ export const FIRST_AID_GUIDES: FirstAidGuide[] = [
       },
       {
         instruction:
-          "Cover the injured eye loosely with a sterile pad. If one eye is covered, cover both — eyes move together, and covering both reduces movement.",
+          "Cover the injured eye loosely with a sterile pad. For severe trauma or embedded objects: cover both eyes to reduce movement (eyes move together). For minor injuries: covering the injured eye only is sufficient.",
       },
       {
         instruction:
