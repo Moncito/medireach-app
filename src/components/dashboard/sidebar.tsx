@@ -33,10 +33,9 @@ const navItems = [
   },
   {
     label: "First Aid Guide",
-    href: "#",
+    href: "/first-aid",
     icon: Cross,
-    active: false,
-    badge: "Soon",
+    active: true,
   },
   {
     label: "Medicine Info",

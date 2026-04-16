@@ -20,16 +20,19 @@ import type { Severity } from "@/lib/gemini";
 /*  Types                                                             */
 /* ------------------------------------------------------------------ */
 
+export type ConversationType = "symptom-checker" | "first-aid";
+
 export interface StoredMessage {
   role: "user" | "assistant";
   content: string;
   severity?: Severity;
-  source?: "emergency" | "rules" | "ai";
+  source?: "emergency" | "rules" | "ai" | "first-aid-ai";
   timestamp: number; // epoch ms — lightweight, easy to serialize
 }
 
 export interface Conversation {
   id: string;
+  type: ConversationType;
   title: string;
   createdAt: Date;
   updatedAt: Date;
@@ -40,6 +43,7 @@ export interface Conversation {
 
 export interface ConversationPreview {
   id: string;
+  type: ConversationType;
   title: string;
   createdAt: Date;
   updatedAt: Date;
@@ -90,7 +94,8 @@ function toDate(ts: Timestamp | { seconds: number } | Date | undefined): Date {
 /** Create a new conversation and return its ID */
 export async function createConversation(
   userId: string,
-  messages: StoredMessage[]
+  messages: StoredMessage[],
+  type: ConversationType = "symptom-checker"
 ): Promise<string> {
   const firstUserMsg = messages.find((m) => m.role === "user");
   const title = firstUserMsg ? deriveTitle(firstUserMsg.content) : "New conversation";
@@ -100,6 +105,7 @@ export async function createConversation(
   );
 
   const docRef = await addDoc(conversationsRef(userId), {
+    type,
     title,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -153,6 +159,7 @@ export async function listConversations(
     const data = d.data() as DocumentData;
     return {
       id: d.id,
+      type: (data.type as ConversationType) ?? "symptom-checker",
       title: data.title ?? "Untitled",
       createdAt: toDate(data.createdAt),
       updatedAt: toDate(data.updatedAt),
@@ -174,6 +181,7 @@ export async function getConversation(
   const data = snap.data() as DocumentData;
   return {
     id: snap.id,
+    type: (data.type as ConversationType) ?? "symptom-checker",
     title: data.title ?? "Untitled",
     createdAt: toDate(data.createdAt),
     updatedAt: toDate(data.updatedAt),

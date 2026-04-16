@@ -38,11 +38,11 @@ const quickActions = [
     title: "First Aid Guide",
     description: "Quick access to emergency first aid instructions",
     icon: Cross,
-    href: "#",
+    href: "/first-aid",
     gradient: "from-accent-mint/10 to-accent-mint/5",
     iconBg: "bg-accent-mint/10",
     iconColor: "text-accent-mint",
-    active: false,
+    active: true,
   },
   {
     title: "Medicine Info",

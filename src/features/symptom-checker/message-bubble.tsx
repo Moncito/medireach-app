@@ -20,7 +20,7 @@ interface MessageBubbleProps {
   role: "user" | "assistant";
   content: string;
   severity?: Severity;
-  source?: "emergency" | "rules" | "ai";
+  source?: "emergency" | "rules" | "ai" | "first-aid-ai";
   isLatest?: boolean;
 }
 
@@ -196,9 +196,14 @@ const sourceConfig = {
     icon: Sparkles,
     className: "bg-accent-lavender/10 text-accent-lavender",
   },
+  "first-aid-ai": {
+    label: "First Aid AI",
+    icon: Sparkles,
+    className: "bg-accent-coral/10 text-accent-coral",
+  },
 };
 
-function SourceBadge({ source }: { source: "emergency" | "rules" | "ai" }) {
+function SourceBadge({ source }: { source: "emergency" | "rules" | "ai" | "first-aid-ai" }) {
   const config = sourceConfig[source];
   const Icon = config.icon;
 

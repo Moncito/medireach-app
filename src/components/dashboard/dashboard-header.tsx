@@ -143,6 +143,14 @@ export function DashboardHeader() {
               Symptom Checker
             </TransitionLink>
             <TransitionLink
+              href="/first-aid"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-surface transition-colors"
+            >
+              <Cross className="w-[18px] h-[18px]" />
+              First Aid Guide
+            </TransitionLink>
+            <TransitionLink
               href="/history"
               onClick={() => setMenuOpen(false)}
               className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-surface transition-colors"
