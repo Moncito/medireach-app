@@ -15,7 +15,6 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Lock,
 } from "lucide-react";
 
 const navItems = [
@@ -39,10 +38,9 @@ const navItems = [
   },
   {
     label: "Medicine Info",
-    href: "#",
+    href: "/medicine-info",
     icon: Pill,
-    active: false,
-    badge: "Soon",
+    active: true,
   },
   {
     label: "History",
@@ -52,10 +50,9 @@ const navItems = [
   },
   {
     label: "Settings",
-    href: "#",
+    href: "/settings",
     icon: Settings,
-    active: false,
-    badge: "Soon",
+    active: true,
   },
 ];
 
@@ -86,33 +83,8 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = item.active && (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/')));
+          const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'));
           const Icon = item.icon;
-
-          if (!item.active) {
-            return (
-              <div
-                key={item.label}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/30 cursor-not-allowed",
-                  collapsed && "justify-center px-0"
-                )}
-                title={collapsed ? item.label : undefined}
-              >
-                <Lock className="w-[18px] h-[18px] flex-shrink-0" />
-                {!collapsed && (
-                  <>
-                    <span className="flex-1">{item.label}</span>
-                    {item.badge && (
-                      <span className="text-[10px] font-medium tracking-wider uppercase bg-white/[0.06] text-white/30 px-2 py-0.5 rounded-full">
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
-                )}
-              </div>
-            );
-          }
 
           return (
             <TransitionLink

@@ -203,6 +203,11 @@ const sourceConfig = {
     icon: Sparkles,
     className: "bg-accent-coral/10 text-accent-coral",
   },
+  "medicine-ai": {
+    label: "Medicine AI",
+    icon: Sparkles,
+    className: "bg-accent-lavender/10 text-accent-lavender",
+  },
 };
 
 const defaultSourceConfig = {

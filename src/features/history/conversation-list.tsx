@@ -24,6 +24,7 @@ import {
   ChevronRight,
   X,
   HeartPulse,
+  Pill,
 } from "lucide-react";
 
 const severityMeta: Record<
@@ -159,6 +160,7 @@ export function ConversationList() {
           { key: "all" as const, label: "All", icon: MessageSquare },
           { key: "symptom-checker" as const, label: "Symptom Checks", icon: Stethoscope },
           { key: "first-aid" as const, label: "First Aid", icon: HeartPulse },
+          { key: "medicine-info" as const, label: "Medicine", icon: Pill },
         ] as const).map(({ key, label, icon: Icon }) => (
           <button
             key={key}
@@ -241,11 +243,15 @@ function ConversationCard({
             "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
             conversation.type === "first-aid"
               ? "bg-accent-coral/10 text-accent-coral"
+              : conversation.type === "medicine-info"
+              ? "bg-accent-lavender/10 text-accent-lavender"
               : meta ? meta.iconBg : "bg-accent-lavender/10 text-accent-lavender"
           )}
         >
           {conversation.type === "first-aid" ? (
             <HeartPulse className="w-5 h-5" />
+          ) : conversation.type === "medicine-info" ? (
+            <Pill className="w-5 h-5" />
           ) : SevIcon ? (
             <SevIcon className="w-5 h-5" />
           ) : (

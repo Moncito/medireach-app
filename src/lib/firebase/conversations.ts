@@ -20,8 +20,8 @@ import type { Severity } from "@/lib/gemini";
 /*  Types                                                             */
 /* ------------------------------------------------------------------ */
 
-export type ConversationType = "symptom-checker" | "first-aid";
-export type MessageSource = "emergency" | "rules" | "ai" | "first-aid-ai";
+export type ConversationType = "symptom-checker" | "first-aid" | "medicine-info";
+export type MessageSource = "emergency" | "rules" | "ai" | "first-aid-ai" | "medicine-ai";
 
 export interface StoredMessage {
   role: "user" | "assistant";

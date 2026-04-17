@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Outfit, DM_Sans, Space_Mono } from "next/font/google";
 import { AuthProvider } from "@/features/auth/auth-provider";
 import { TransitionProvider } from "@/components/ui/transition-provider";
+import { OfflineBanner } from "@/components/ui/offline-banner";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -33,6 +34,20 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "MediReach",
   },
+  openGraph: {
+    title: "MediReach — Your AI Healthcare Companion",
+    description:
+      "AI-powered symptom triage, first aid guides, and medicine info — accessible anywhere, even offline.",
+    siteName: "MediReach",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary",
+    title: "MediReach — Your AI Healthcare Companion",
+    description:
+      "AI-powered symptom triage, first aid guides, and medicine info — accessible anywhere, even offline.",
+  },
 };
 
 export const viewport: Viewport = {
@@ -55,6 +70,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col">
         <AuthProvider>
           <TransitionProvider>{children}</TransitionProvider>
+          <OfflineBanner />
         </AuthProvider>
       </body>
     </html>
