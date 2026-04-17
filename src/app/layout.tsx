@@ -70,8 +70,8 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col">
         <AuthProvider>
           <TransitionProvider>{children}</TransitionProvider>
-          <OfflineBanner />
         </AuthProvider>
+        <OfflineBanner />
       </body>
     </html>
   );

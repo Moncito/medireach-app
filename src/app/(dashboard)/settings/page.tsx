@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/features/auth/auth-provider";
 import { usePageTransition } from "@/components/ui/transition-provider";
-import { updateProfile, deleteUser, type User } from "firebase/auth";
-import { doc, deleteDoc } from "firebase/firestore";
+import { updateProfile, deleteUser, type User, type AuthError } from "firebase/auth";
+import { doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import { signOut } from "@/lib/firebase/auth";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,7 @@ export default function SettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.displayName) setDisplayName(user.displayName);
@@ -56,7 +57,6 @@ export default function SettingsPage() {
       await updateProfile(user, { displayName: trimmed });
       // Sync Firestore
       const ref = doc(db, "users", user.uid);
-      const { updateDoc } = await import("firebase/firestore");
       await updateDoc(ref, { displayName: trimmed });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -71,16 +71,28 @@ export default function SettingsPage() {
     if (!user || isGuest || deleteConfirmText !== "DELETE") return;
 
     setDeleting(true);
+    setDeleteError(null);
     try {
-      // Delete Firestore user doc
-      await deleteDoc(doc(db, "users", user.uid));
-      // Delete Firebase Auth account
+      // Delete Auth account first (requires recent login)
       await deleteUser(user);
+      // Then clean up Firestore doc
+      try {
+        await deleteDoc(doc(db, "users", user.uid));
+      } catch {
+        // Firestore cleanup failure is non-critical — doc is orphaned but auth is gone
+      }
       navigateTo("/");
-    } catch {
-      setError(
-        "Failed to delete account. You may need to sign in again before deleting."
-      );
+    } catch (err) {
+      const authErr = err as AuthError;
+      if (authErr.code === "auth/requires-recent-login") {
+        setDeleteError(
+          "For security, please sign out and sign back in before deleting your account."
+        );
+      } else {
+        setDeleteError(
+          "Failed to delete account. Please try again."
+        );
+      }
       setDeleting(false);
     }
   }
@@ -118,7 +130,7 @@ export default function SettingsPage() {
 
   const provider = user?.providerData[0]?.providerId ?? "unknown";
   const createdAt = user?.metadata?.creationTime
-    ? new Date(user.metadata.creationTime).toLocaleDateString("en-US", {
+    ? new Date(user.metadata.creationTime).toLocaleDateString(undefined, {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -280,13 +292,22 @@ export default function SettingsPage() {
             </button>
           ) : (
             <div className="space-y-3 p-4 rounded-xl bg-red-50/50 border border-red-200">
+              {deleteError && (
+                <p className="text-sm text-red-600 flex items-center gap-1.5" role="alert">
+                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                  {deleteError}
+                </p>
+              )}
               <p className="text-sm font-medium text-red-600">
                 Type <strong>DELETE</strong> to confirm:
               </p>
               <input
                 type="text"
                 value={deleteConfirmText}
-                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                onChange={(e) => {
+                  setDeleteConfirmText(e.target.value);
+                  setDeleteError(null);
+                }}
                 className="w-full px-4 py-2.5 rounded-xl border border-red-200 bg-white text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 transition-colors"
                 placeholder='Type "DELETE"'
               />
@@ -312,6 +333,7 @@ export default function SettingsPage() {
                   onClick={() => {
                     setShowDeleteConfirm(false);
                     setDeleteConfirmText("");
+                    setDeleteError(null);
                   }}
                   className="px-4 py-2.5 rounded-xl text-sm font-medium text-muted hover:text-foreground hover:bg-surface transition-colors"
                 >

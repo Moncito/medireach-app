@@ -94,20 +94,18 @@ export default function MedicineInfoPage() {
       </div>
 
       {/* AI Tab */}
-      {activeTab === "ask-ai" ? (
-        <>
-          <MedicineChat />
-          <div className="rounded-2xl bg-surface/80 border border-border/40 p-4 flex items-start gap-3">
-            <Shield className="w-5 h-5 text-muted flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-muted leading-relaxed">
-              <span className="font-semibold">Disclaimer:</span> AI-generated
-              medicine information is for educational purposes only. Always
-              consult a pharmacist or healthcare provider before starting,
-              stopping, or changing any medication.
-            </p>
-          </div>
-        </>
-      ) : null}
+      <div className={activeTab === "ask-ai" ? "" : "hidden"}>
+        <MedicineChat />
+        <div className="rounded-2xl bg-surface/80 border border-border/40 p-4 flex items-start gap-3">
+          <Shield className="w-5 h-5 text-muted flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-muted leading-relaxed">
+            <span className="font-semibold">Disclaimer:</span> AI-generated
+            medicine information is for educational purposes only. Always
+            consult a pharmacist or healthcare provider before starting,
+            stopping, or changing any medication.
+          </p>
+        </div>
+      </div>
 
       {/* Browse Tab */}
       <div className={activeTab === "browse" ? "" : "hidden"}>

@@ -15,6 +15,7 @@ import {
   Cpu,
   Sparkles,
   HelpCircle,
+  Pill,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -205,7 +206,7 @@ const sourceConfig = {
   },
   "medicine-ai": {
     label: "Medicine AI",
-    icon: Sparkles,
+    icon: Pill,
     className: "bg-accent-lavender/10 text-accent-lavender",
   },
 };

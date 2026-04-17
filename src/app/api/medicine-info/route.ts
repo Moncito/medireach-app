@@ -80,13 +80,13 @@ export async function POST(req: NextRequest) {
 
     let responseText: string;
 
+    const chatHistory = messages.slice(0, -1).map((m) => ({
+      role: m.role === "user" ? "user" : "model",
+      parts: [{ text: m.content }],
+    }));
+
     try {
-      const chat = medicineModel.startChat({
-        history: messages.slice(0, -1).map((m) => ({
-          role: m.role === "user" ? "user" : "model",
-          parts: [{ text: m.content }],
-        })),
-      });
+      const chat = medicineModel.startChat({ history: chatHistory });
 
       try {
         const result = await chat.sendMessage(lastMessage.content);
@@ -98,12 +98,7 @@ export async function POST(req: NextRequest) {
             (primaryError as Error).message
           );
           try {
-            const fallbackChat = medicineModelFallback.startChat({
-              history: messages.slice(0, -1).map((m) => ({
-                role: m.role === "user" ? "user" : "model",
-                parts: [{ text: m.content }],
-              })),
-            });
+            const fallbackChat = medicineModelFallback.startChat({ history: chatHistory });
             const fallbackResult = await fallbackChat.sendMessage(
               lastMessage.content
             );
@@ -136,6 +131,18 @@ export async function POST(req: NextRequest) {
     }
 
     const cleaned = cleanResponse(responseText);
+
+    if (!cleaned.trim()) {
+      refundRateLimit(ip);
+      return NextResponse.json(
+        {
+          error: "AI service returned an empty response. Please try again.",
+          retryable: true,
+          usage: { remaining: rateCheck.remaining + 1, limit: rateCheck.limit },
+        },
+        { status: 503 }
+      );
+    }
 
     return NextResponse.json({
       message: cleaned,

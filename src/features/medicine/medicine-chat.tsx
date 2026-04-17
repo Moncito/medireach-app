@@ -25,6 +25,7 @@ interface Message {
   content: string;
   source?: "medicine-ai";
   timestamp: number;
+  isError?: boolean;
 }
 
 interface UsageInfo {
@@ -144,10 +145,12 @@ export function MedicineChat() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: updatedMessages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
+          messages: updatedMessages
+            .filter((m) => !m.isError)
+            .map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
         }),
       });
 
@@ -176,7 +179,7 @@ export function MedicineChat() {
       const errorContent = apiError || genericError;
       setMessages((prev) => [
         ...prev,
-        { id: crypto.randomUUID(), role: "assistant", content: errorContent, timestamp: Date.now() },
+        { id: crypto.randomUUID(), role: "assistant", content: errorContent, timestamp: Date.now(), isError: true },
       ]);
     } finally {
       setIsLoading(false);

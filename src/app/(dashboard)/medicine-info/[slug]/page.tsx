@@ -1,6 +1,6 @@
 "use client";
 
-import { notFound } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import { TransitionLink } from "@/components/ui/transition-provider";
 import {
   getMedicineBySlug,
@@ -25,12 +25,9 @@ const typeBadge = {
   "common-rx": { label: "Prescription Info", className: "bg-accent-lavender/10 text-accent-lavender" },
 };
 
-export default function MedicineDetailPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  const med = getMedicineBySlug(params.slug);
+export default function MedicineDetailPage() {
+  const { slug } = useParams<{ slug: string }>();
+  const med = slug ? getMedicineBySlug(slug) : null;
 
   if (!med) {
     return notFound();
