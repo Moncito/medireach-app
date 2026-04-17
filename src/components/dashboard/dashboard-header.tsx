@@ -14,6 +14,8 @@ import {
   Stethoscope,
   Clock,
   Cross,
+  Pill,
+  Settings,
   ChevronDown,
 } from "lucide-react";
 
@@ -151,12 +153,28 @@ export function DashboardHeader() {
               First Aid Guide
             </TransitionLink>
             <TransitionLink
+              href="/medicine-info"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-surface transition-colors"
+            >
+              <Pill className="w-[18px] h-[18px]" />
+              Medicine Info
+            </TransitionLink>
+            <TransitionLink
               href="/history"
               onClick={() => setMenuOpen(false)}
               className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-surface transition-colors"
             >
               <Clock className="w-[18px] h-[18px]" />
               History
+            </TransitionLink>
+            <TransitionLink
+              href="/settings"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-surface transition-colors"
+            >
+              <Settings className="w-[18px] h-[18px]" />
+              Settings
             </TransitionLink>
           </nav>
         </div>

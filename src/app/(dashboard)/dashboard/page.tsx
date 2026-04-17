@@ -48,11 +48,11 @@ const quickActions = [
     title: "Medicine Info",
     description: "Look up medications, dosages, and interactions",
     icon: Pill,
-    href: "#",
+    href: "/medicine-info",
     gradient: "from-accent-lavender/10 to-accent-lavender/5",
     iconBg: "bg-accent-lavender/10",
     iconColor: "text-accent-lavender",
-    active: false,
+    active: true,
   },
 ];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { notFound } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import { TransitionLink } from "@/components/ui/transition-provider";
 import { getGuideBySlug, CATEGORIES } from "@/data/first-aid-guides";
 import { cn } from "@/lib/utils";
@@ -39,12 +39,9 @@ const severityConfig = {
   },
 };
 
-export default function FirstAidGuidePage({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  const guide = getGuideBySlug(params.slug);
+export default function FirstAidGuidePage() {
+  const { slug } = useParams<{ slug: string }>();
+  const guide = slug ? getGuideBySlug(slug) : null;
 
   if (!guide) {
     return notFound();
