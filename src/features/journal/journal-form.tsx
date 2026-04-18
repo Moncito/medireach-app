@@ -20,8 +20,13 @@ export function JournalForm({ initial, onSave, onCancel }: JournalFormProps) {
   const [content, setContent] = useState(initial?.content ?? "");
   const [mood, setMood] = useState<Mood>(initial?.mood ?? "okay");
   const [tags, setTags] = useState<string[]>(initial?.tags ?? []);
-  const [date, setDate] = useState(initial?.date ?? new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(() => {
+    if (initial?.date) return initial.date;
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  });
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function toggleTag(tag: string) {
     setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
@@ -30,9 +35,16 @@ export function JournalForm({ initial, onSave, onCancel }: JournalFormProps) {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(new Date(date + "T00:00:00").getTime())) {
+      setError("Please enter a valid date.");
+      return;
+    }
+    setError(null);
     setSaving(true);
     try {
       await onSave({ title: title.trim(), content: content.trim(), mood, tags, date });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save entry. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -144,6 +156,13 @@ export function JournalForm({ initial, onSave, onCancel }: JournalFormProps) {
           ))}
         </div>
       </div>
+
+      {/* Error */}
+      {error && (
+        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
+          {error}
+        </div>
+      )}
 
       {/* Submit */}
       <div className="flex gap-3 pt-2">

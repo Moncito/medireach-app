@@ -93,6 +93,6 @@ const pillItems = [
   { label: "Offline Ready", color: "#10B981" },
   { label: "Drug Interactions", color: "#8B5CF6" },
   { label: "First Aid Guides", color: "#FF6B35" },
-  { label: "Emergency Guides", color: "#10B981" },
+  { label: "Health Journal", color: "#10B981" },
   { label: "Facility Finder", color: "#8B5CF6" },
 ];

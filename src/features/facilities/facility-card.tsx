@@ -20,10 +20,21 @@ interface FacilityCardProps {
 export function FacilityCard({ facility, isSelected, onSelect }: FacilityCardProps) {
   const config = FACILITY_CONFIG[facility.type];
 
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSelect(facility);
+    }
+  }
+
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect(facility)}
-      className={`w-full text-left rounded-2xl border p-4 transition-all duration-200 ${
+      onKeyDown={handleKeyDown}
+      aria-pressed={isSelected}
+      className={`w-full text-left rounded-2xl border p-4 transition-all duration-200 cursor-pointer ${
         isSelected
           ? "border-accent-coral/40 bg-accent-coral/5 shadow-card"
           : "border-border/60 bg-white hover:border-border hover:shadow-soft"
@@ -92,6 +103,6 @@ export function FacilityCard({ facility, isSelected, onSelect }: FacilityCardPro
           </div>
         </div>
       </div>
-    </button>
+    </div>
   );
 }

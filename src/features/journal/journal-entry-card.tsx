@@ -25,12 +25,15 @@ export function JournalEntryCard({ entry, onEdit, onDelete }: JournalEntryCardPr
             <div className="flex items-center gap-1.5 mt-0.5">
               <Calendar className="h-3 w-3 text-muted-light" />
               <span className="text-xs text-muted">
-                {new Date(entry.date).toLocaleDateString(undefined, {
-                  weekday: "short",
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
+                {(() => {
+                  const [y, m, d] = entry.date.split("-").map(Number);
+                  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+                    weekday: "short",
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  });
+                })()}
               </span>
               <span
                 className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold"
@@ -42,18 +45,18 @@ export function JournalEntryCard({ entry, onEdit, onDelete }: JournalEntryCardPr
           </div>
         </div>
 
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
           <button
             onClick={() => onEdit(entry)}
             className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-surface transition-colors"
-            title="Edit"
+            aria-label={`Edit entry: ${entry.title}`}
           >
             <Edit3 className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => onDelete(entry.id)}
             className="p-1.5 rounded-lg text-muted hover:text-red-500 hover:bg-red-50 transition-colors"
-            title="Delete"
+            aria-label={`Delete entry: ${entry.title}`}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </button>

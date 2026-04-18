@@ -141,7 +141,7 @@ export async function fetchNearbyFacilities(
 
   console.log(`[Overpass] Got ${data.elements.length} raw elements`);
 
-  const seen = new Set<number>();
+  const seen = new Set<string>();
 
   const facilities: Facility[] = (data.elements as Record<string, unknown>[])
     .map((el): Facility | null => {
@@ -152,10 +152,11 @@ export async function fetchNearbyFacilities(
       const type = normalizeType(raw);
       if (!type) return null;
 
-      // Deduplicate (same facility can match amenity + healthcare)
+      // Deduplicate using composite key (type:id) — nodes/ways/relations can share numeric ids
+      const dedupeKey = `${el.type}:${el.id}`;
+      if (seen.has(dedupeKey)) return null;
+      seen.add(dedupeKey);
       const id = el.id as number;
-      if (seen.has(id)) return null;
-      seen.add(id);
 
       // Coordinates: nodes have lat/lon directly, ways/relations use center
       const center = el.center as { lat?: number; lon?: number } | undefined;
@@ -173,7 +174,7 @@ export async function fetchNearbyFacilities(
           .filter(Boolean)
           .join(", ") || undefined,
         phone: tags.phone || tags["contact:phone"] || undefined,
-        website: tags.website || tags["contact:website"] || undefined,
+        website: sanitizeUrl(tags.website || tags["contact:website"]) || undefined,
         openingHours: tags.opening_hours || undefined,
         distance: haversineKm(lat, lon, elLat, elLon),
       };
@@ -203,6 +204,16 @@ function normalizeType(raw: string): Facility["type"] | null {
 
 function formatType(type: string): string {
   return type.charAt(0).toUpperCase() + type.slice(1);
+}
+
+/** Only allow http/https URLs from untrusted OSM data */
+function sanitizeUrl(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  try {
+    const url = new URL(raw);
+    if (url.protocol === "http:" || url.protocol === "https:") return url.href;
+  } catch { /* invalid URL */ }
+  return undefined;
 }
 
 function haversineKm(

@@ -83,9 +83,24 @@ export function FacilityMap({ center, facilities, selectedId, onSelect }: Facili
 
       const marker = L.marker([f.lat, f.lon], { icon });
       marker.on("click", () => onSelect(f));
-      marker.bindPopup(
-        `<strong>${f.name}</strong><br/><span style="color:${config.color}">${config.label}</span>${f.address ? `<br/><small>${f.address}</small>` : ""}`
-      );
+
+      // Build popup as DOM nodes to prevent XSS from OSM data
+      const popupEl = document.createElement("div");
+      const nameEl = document.createElement("strong");
+      nameEl.textContent = f.name;
+      popupEl.appendChild(nameEl);
+      popupEl.appendChild(document.createElement("br"));
+      const typeEl = document.createElement("span");
+      typeEl.textContent = config.label;
+      typeEl.style.color = config.color;
+      popupEl.appendChild(typeEl);
+      if (f.address) {
+        popupEl.appendChild(document.createElement("br"));
+        const addrEl = document.createElement("small");
+        addrEl.textContent = f.address;
+        popupEl.appendChild(addrEl);
+      }
+      marker.bindPopup(popupEl);
 
       markersRef.current!.addLayer(marker);
     });

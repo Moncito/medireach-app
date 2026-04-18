@@ -119,7 +119,8 @@ export default function JournalPage() {
     const map = new Map<string, JournalEntry[]>();
 
     filteredEntries.forEach((entry) => {
-      const d = new Date(entry.date);
+      const [yr, mo] = entry.date.split("-").map(Number);
+      const d = new Date(yr, mo - 1, 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(entry);
