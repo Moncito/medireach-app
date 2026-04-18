@@ -11,6 +11,8 @@ import {
   Stethoscope,
   Cross,
   Pill,
+  MapPin,
+  BookOpen,
   Clock,
   Settings,
   ChevronLeft,
@@ -40,6 +42,18 @@ const navItems = [
     label: "Medicine Info",
     href: "/medicine-info",
     icon: Pill,
+    active: true,
+  },
+  {
+    label: "Facilities",
+    href: "/facilities",
+    icon: MapPin,
+    active: true,
+  },
+  {
+    label: "Journal",
+    href: "/journal",
+    icon: BookOpen,
     active: true,
   },
   {

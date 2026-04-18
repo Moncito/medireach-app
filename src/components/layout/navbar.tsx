@@ -10,8 +10,8 @@ import { TransitionLink, usePageTransition } from "@/components/ui/transition-pr
 const navLinks = [
   { href: "/symptom-checker", label: "Symptom Checker" },
   { href: "/first-aid", label: "First Aid" },
-  { href: "/medicine", label: "Medicine" },
-  { href: "/map", label: "Facilities" },
+  { href: "/medicine-info", label: "Medicine" },
+  { href: "/facilities", label: "Facilities" },
   { href: "/journal", label: "Journal" },
 ];
 

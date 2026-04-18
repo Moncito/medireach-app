@@ -2,12 +2,12 @@
 
 import { Reveal } from "@/components/ui/reveal";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
-import { Shield, Users, Globe, Clock } from "lucide-react";
+import { Shield, Pill, Wifi, Clock } from "lucide-react";
 
 const stats = [
-  { icon: Shield, value: 150, suffix: "+", label: "First Aid Guides", color: "#FF6B35" },
-  { icon: Users, value: 5000, suffix: "+", label: "Families Helped", color: "#10B981" },
-  { icon: Globe, value: 12, suffix: "", label: "Languages", color: "#8B5CF6" },
+  { icon: Shield, value: 15, suffix: "+", label: "First Aid Guides", color: "#FF6B35" },
+  { icon: Pill, value: 15, suffix: "+", label: "Medicine Guides", color: "#10B981" },
+  { icon: Wifi, value: 100, suffix: "%", label: "Offline Ready", color: "#8B5CF6" },
   { icon: Clock, value: 24, suffix: "/7", label: "Always Available", color: "#FF6B35" },
 ];
 
