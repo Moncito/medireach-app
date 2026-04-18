@@ -23,11 +23,11 @@ type FacilityType = Facility["type"] | "all";
 
 const filterOptions: { value: FacilityType; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "hospital", label: "🏥 Hospitals" },
-  { value: "clinic", label: "🩺 Clinics" },
-  { value: "pharmacy", label: "💊 Pharmacies" },
-  { value: "dentist", label: "🦷 Dentists" },
-  { value: "doctors", label: "👨‍⚕️ Doctors" },
+  { value: "hospital", label: "Hospitals" },
+  { value: "clinic", label: "Clinics" },
+  { value: "pharmacy", label: "Pharmacies" },
+  { value: "dentist", label: "Dentists" },
+  { value: "doctors", label: "Doctors" },
 ];
 
 export default function FacilitiesPage() {
@@ -75,7 +75,7 @@ export default function FacilitiesPage() {
   }, [requestLocation]);
 
   // Fetch facilities when location is available
-  useEffect(() => {
+  const fetchFacilities = useCallback(() => {
     if (!location) return;
 
     setLoading(true);
@@ -84,14 +84,18 @@ export default function FacilitiesPage() {
       .then((data) => {
         setFacilities(data);
         if (data.length === 0) {
-          setError("No healthcare facilities found nearby. Try expanding your search area.");
+          setError("No facilities found. The map server may be busy — tap Retry.");
         }
       })
       .catch(() => {
-        setError("Failed to fetch nearby facilities. Please try again.");
+        setError("Map server is temporarily unavailable. Please tap Retry.");
       })
       .finally(() => setLoading(false));
   }, [location]);
+
+  useEffect(() => {
+    fetchFacilities();
+  }, [fetchFacilities]);
 
   const filteredFacilities = useMemo(() => {
     let result = facilities;
@@ -231,15 +235,25 @@ export default function FacilitiesPage() {
             <div className="flex flex-col items-center justify-center py-12">
               <Loader2 className="w-6 h-6 text-accent-coral animate-spin mb-3" />
               <p className="text-sm text-muted">Finding facilities near you...</p>
+              <p className="text-xs text-muted-light mt-1">This may take a few seconds</p>
             </div>
           ) : filteredFacilities.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <MapPin className="w-8 h-8 text-muted-light mb-3" />
-              <p className="text-sm text-muted">
+              <p className="text-sm text-muted mb-4">
                 {searchQuery || filter !== "all"
                   ? "No facilities match your search."
-                  : "No facilities found nearby."}
+                  : error || "No facilities found nearby."}
               </p>
+              {!searchQuery && filter === "all" && (
+                <button
+                  onClick={fetchFacilities}
+                  className="btn-primary text-sm"
+                >
+                  <Navigation className="w-4 h-4" />
+                  Retry
+                </button>
+              )}
             </div>
           ) : (
             filteredFacilities.map((f) => (

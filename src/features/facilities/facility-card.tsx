@@ -1,7 +1,15 @@
 "use client";
 
 import { type Facility, FACILITY_CONFIG } from "@/lib/overpass";
-import { MapPin, Phone, Globe, Clock } from "lucide-react";
+import { MapPin, Phone, Globe, Clock, Building2, Stethoscope, Pill, SmilePlus, UserRound } from "lucide-react";
+
+const FACILITY_ICONS: Record<Facility["type"], React.ElementType> = {
+  hospital: Building2,
+  clinic: Stethoscope,
+  pharmacy: Pill,
+  dentist: SmilePlus,
+  doctors: UserRound,
+};
 
 interface FacilityCardProps {
   facility: Facility;
@@ -22,7 +30,11 @@ export function FacilityCard({ facility, isSelected, onSelect }: FacilityCardPro
       }`}
     >
       <div className="flex items-start gap-3">
-        <span className="text-2xl leading-none mt-0.5">{config.emoji}</span>
+        {(() => { const Icon = FACILITY_ICONS[facility.type]; return (
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${config.color}15` }}>
+            <Icon className="w-4.5 h-4.5" style={{ color: config.color }} />
+          </div>
+        ); })()}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-heading text-sm font-bold text-foreground truncate">

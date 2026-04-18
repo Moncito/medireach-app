@@ -15,56 +15,158 @@ export interface Facility {
   distance?: number; // km
 }
 
-const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
+/* Overpass endpoints — try each in order, with retries */
+const OVERPASS_ENDPOINTS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+];
+
+/** Simple in-memory + sessionStorage cache keyed by rounded coords */
+function getCacheKey(lat: number, lon: number, radius: number): string {
+  return `overpass_${lat.toFixed(3)}_${lon.toFixed(3)}_${radius}`;
+}
+
+function getCached(key: string): Facility[] | null {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    // Cache valid for 10 minutes
+    if (Date.now() - ts > 10 * 60 * 1000) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+    return data as Facility[];
+  } catch {
+    return null;
+  }
+}
+
+function setCache(key: string, data: Facility[]): void {
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
+  } catch {
+    /* quota exceeded — ignore */
+  }
+}
 
 /**
  * Query nearby healthcare facilities within a radius (meters) of a point.
  * Uses Overpass QL to search OpenStreetMap data.
+ * Tries multiple endpoints with retry. Caches results in sessionStorage.
  */
 export async function fetchNearbyFacilities(
   lat: number,
   lon: number,
   radiusMeters = 5000
 ): Promise<Facility[]> {
+  const cacheKey = getCacheKey(lat, lon, radiusMeters);
+  const cached = getCached(cacheKey);
+  if (cached) {
+    console.log(`[Overpass] Cache hit: ${cached.length} facilities`);
+    return cached;
+  }
+
   const query = `
-    [out:json][timeout:15];
+    [out:json][timeout:25];
     (
-      node["amenity"="hospital"](around:${radiusMeters},${lat},${lon});
-      node["amenity"="clinic"](around:${radiusMeters},${lat},${lon});
-      node["amenity"="pharmacy"](around:${radiusMeters},${lat},${lon});
-      node["amenity"="dentist"](around:${radiusMeters},${lat},${lon});
-      node["amenity"="doctors"](around:${radiusMeters},${lat},${lon});
-      way["amenity"="hospital"](around:${radiusMeters},${lat},${lon});
-      way["amenity"="clinic"](around:${radiusMeters},${lat},${lon});
-      way["amenity"="pharmacy"](around:${radiusMeters},${lat},${lon});
+      nwr["amenity"~"^(hospital|clinic|pharmacy|dentist|doctors)$"](around:${radiusMeters},${lat},${lon});
+      nwr["healthcare"~"^(hospital|clinic|pharmacy|dentist|doctor)$"](around:${radiusMeters},${lat},${lon});
     );
-    out center body;
+    out body center qt;
   `;
 
-  const res = await fetch(OVERPASS_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: `data=${encodeURIComponent(query)}`,
-  });
+  let data: { elements?: unknown[] } | null = null;
+  let lastError: unknown = null;
 
-  if (!res.ok) throw new Error("Failed to fetch facilities");
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    // Try each endpoint up to 2 times
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        if (attempt > 0) {
+          // Brief delay before retry
+          await new Promise((r) => setTimeout(r, 1500));
+        }
 
-  const data = await res.json();
+        console.log(`[Overpass] Trying ${endpoint} (attempt ${attempt + 1})`);
 
-  const facilities: Facility[] = data.elements
-    .map((el: Record<string, unknown>): Facility | null => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
+
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `data=${encodeURIComponent(query)}`,
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+
+        if (res.status === 429 || res.status === 503) {
+          console.warn(`[Overpass] ${endpoint} rate limited (${res.status})`);
+          lastError = new Error(`Rate limited: ${res.status}`);
+          break; // Skip retries for this endpoint, try next
+        }
+
+        if (!res.ok) {
+          console.warn(`[Overpass] ${endpoint} returned ${res.status}`);
+          lastError = new Error(`HTTP ${res.status}`);
+          continue;
+        }
+
+        data = await res.json();
+
+        if (data?.elements && data.elements.length > 0) {
+          console.log(`[Overpass] Success from ${endpoint}: ${data.elements.length} elements`);
+          break;
+        }
+
+        // Got response but 0 elements — try next endpoint
+        console.warn(`[Overpass] ${endpoint} returned 0 elements`);
+        lastError = new Error("Empty response");
+      } catch (err) {
+        console.warn(`[Overpass] ${endpoint} attempt ${attempt + 1} failed:`, err);
+        lastError = err;
+        continue;
+      }
+    }
+
+    if (data?.elements && data.elements.length > 0) break;
+  }
+
+  if (!data?.elements) {
+    throw lastError instanceof Error ? lastError : new Error("All Overpass endpoints failed");
+  }
+
+  console.log(`[Overpass] Got ${data.elements.length} raw elements`);
+
+  const seen = new Set<number>();
+
+  const facilities: Facility[] = (data.elements as Record<string, unknown>[])
+    .map((el): Facility | null => {
       const tags = (el.tags ?? {}) as Record<string, string>;
-      const amenity = tags.amenity as Facility["type"] | undefined;
-      if (!amenity) return null;
 
-      const elLat = (el.lat ?? (el.center as { lat: number } | undefined)?.lat) as number | undefined;
-      const elLon = (el.lon ?? (el.center as { lon: number } | undefined)?.lon) as number | undefined;
-      if (!elLat || !elLon) return null;
+      // Resolve type from amenity or healthcare tag
+      const raw = tags.amenity || tags.healthcare || "";
+      const type = normalizeType(raw);
+      if (!type) return null;
+
+      // Deduplicate (same facility can match amenity + healthcare)
+      const id = el.id as number;
+      if (seen.has(id)) return null;
+      seen.add(id);
+
+      // Coordinates: nodes have lat/lon directly, ways/relations use center
+      const center = el.center as { lat?: number; lon?: number } | undefined;
+      const elLat = (el.lat as number | undefined) ?? center?.lat;
+      const elLon = (el.lon as number | undefined) ?? center?.lon;
+      if (elLat == null || elLon == null) return null;
 
       return {
-        id: el.id as number,
-        name: tags.name || formatType(amenity),
-        type: amenity,
+        id,
+        name: tags.name || formatType(type),
+        type,
         lat: elLat,
         lon: elLon,
         address: [tags["addr:street"], tags["addr:housenumber"], tags["addr:city"]]
@@ -76,10 +178,27 @@ export async function fetchNearbyFacilities(
         distance: haversineKm(lat, lon, elLat, elLon),
       };
     })
-    .filter((f: Facility | null): f is Facility => f !== null)
-    .sort((a: Facility, b: Facility) => (a.distance ?? 0) - (b.distance ?? 0));
+    .filter((f): f is Facility => f !== null)
+    .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
+
+  if (facilities.length > 0) {
+    setCache(cacheKey, facilities);
+  }
 
   return facilities;
+}
+
+/** Map raw OSM tag values to our Facility type union */
+function normalizeType(raw: string): Facility["type"] | null {
+  const map: Record<string, Facility["type"]> = {
+    hospital: "hospital",
+    clinic: "clinic",
+    pharmacy: "pharmacy",
+    dentist: "dentist",
+    doctors: "doctors",
+    doctor: "doctors", // healthcare=doctor → doctors
+  };
+  return map[raw] ?? null;
 }
 
 function formatType(type: string): string {
@@ -107,11 +226,11 @@ function toRad(deg: number): number {
 
 export const FACILITY_CONFIG: Record<
   Facility["type"],
-  { label: string; color: string; emoji: string }
+  { label: string; color: string; icon: string }
 > = {
-  hospital: { label: "Hospital", color: "#EF4444", emoji: "🏥" },
-  clinic: { label: "Clinic", color: "#3B82F6", emoji: "🩺" },
-  pharmacy: { label: "Pharmacy", color: "#10B981", emoji: "💊" },
-  dentist: { label: "Dentist", color: "#8B5CF6", emoji: "🦷" },
-  doctors: { label: "Doctor", color: "#FF6B35", emoji: "👨‍⚕️" },
+  hospital: { label: "Hospital", color: "#EF4444", icon: "H" },
+  clinic: { label: "Clinic", color: "#3B82F6", icon: "C" },
+  pharmacy: { label: "Pharmacy", color: "#10B981", icon: "Rx" },
+  dentist: { label: "Dentist", color: "#8B5CF6", icon: "D" },
+  doctors: { label: "Doctor", color: "#F59E0B", icon: "Dr" },
 };

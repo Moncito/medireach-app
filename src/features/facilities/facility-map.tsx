@@ -69,16 +69,16 @@ export function FacilityMap({ center, facilities, selectedId, onSelect }: Facili
       const config = FACILITY_CONFIG[f.type];
       const isSelected = f.id === selectedId;
 
+      const size = isSelected ? 36 : 28;
       const icon = L.divIcon({
-        html: `<div style="
-          font-size:${isSelected ? "24px" : "20px"};
-          filter:${isSelected ? "drop-shadow(0 0 6px " + config.color + ")" : "none"};
-          transition:all 0.2s;
-          cursor:pointer;
-        ">${config.emoji}</div>`,
+        html: `<svg width="${size}" height="${size + 8}" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.27 21.73 0 14 0z" fill="${config.color}" ${isSelected ? `stroke="white" stroke-width="2"` : ""}/>
+          <circle cx="14" cy="14" r="8" fill="white"/>
+          <text x="14" y="${config.icon.length > 1 ? "17" : "18"}" text-anchor="middle" fill="${config.color}" font-size="${config.icon.length > 1 ? "9" : "12"}" font-weight="700" font-family="system-ui,sans-serif">${config.icon}</text>
+        </svg>`,
         className: "",
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
+        iconSize: [size, size + 8],
+        iconAnchor: [size / 2, size + 8],
       });
 
       const marker = L.marker([f.lat, f.lon], { icon });
