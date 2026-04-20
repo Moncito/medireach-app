@@ -17,6 +17,7 @@ import {
   Scissors,
   Bug,
   WifiOff,
+  LogIn,
 } from "lucide-react";
 
 interface Message {
@@ -61,6 +62,7 @@ export function FirstAidChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
   const conversationIdRef = useRef<string | null>(null);
+  const isSavingRef = useRef(false);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -69,9 +71,7 @@ export function FirstAidChat() {
     fetch("/api/first-aid")
       .then((r) => r.json())
       .then((data) => setUsage({ remaining: data.remaining, limit: data.limit }))
-      .catch((err) => {
-        console.warn("Failed to fetch first aid usage:", err);
-      });
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -97,6 +97,8 @@ export function FirstAidChat() {
   const saveConversation = useCallback(
     async (allMessages: Message[]) => {
       if (!user?.uid || user.isAnonymous) return;
+      if (isSavingRef.current) return;
+      isSavingRef.current = true;
       const stored: StoredMessage[] = allMessages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -110,8 +112,10 @@ export function FirstAidChat() {
         } else {
           await updateConversation(user.uid, conversationIdRef.current, stored);
         }
-      } catch (err) {
-        console.warn("Failed to save first aid conversation:", err);
+      } catch {
+        // Non-critical: conversation history is a convenience feature
+      } finally {
+        isSavingRef.current = false;
       }
     },
     [user]
@@ -199,6 +203,7 @@ export function FirstAidChat() {
     setMessages([]);
     setInput("");
     conversationIdRef.current = null;
+    isSavingRef.current = false;
     inputRef.current?.focus();
     fetchUsage();
   }
@@ -328,6 +333,15 @@ export function FirstAidChat() {
               </div>
             )}
           </div>
+          {user?.isAnonymous && (
+            <div className="flex items-center justify-center gap-1.5 mt-1.5 text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-1.5">
+              <LogIn className="w-3 h-3 flex-shrink-0" />
+              <span>
+                <a href="/login" className="font-semibold underline underline-offset-2 hover:text-amber-700">Sign in</a>
+                {" "}to save your conversations to history.
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -11,6 +11,17 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+// Validate required config at startup so misconfigured deployments fail fast
+const requiredKeys = ["apiKey", "authDomain", "projectId", "appId"] as const;
+for (const key of requiredKeys) {
+  if (!firebaseConfig[key]) {
+    throw new Error(
+      `Firebase configuration error: NEXT_PUBLIC_FIREBASE_${key.replace(/([A-Z])/g, "_$1").toUpperCase()} is not set. ` +
+        "Check your environment variables."
+    );
+  }
+}
+
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);

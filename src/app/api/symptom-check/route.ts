@@ -31,7 +31,7 @@ function isRetryableError(error: unknown): boolean {
 export async function GET(req: NextRequest) {
   // Usage check endpoint — returns remaining quota without consuming
   const ip = getClientIP(req);
-  const usage = checkRateLimit(ip);
+  const usage = await checkRateLimit(ip);
   return NextResponse.json({
     remaining: usage.remaining,
     limit: usage.limit,
@@ -55,6 +55,18 @@ export async function POST(req: NextRequest) {
         { error: "Conversation too long. Please start a new session." },
         { status: 400 }
       );
+    }
+
+    const MAX_MESSAGE_LENGTH = 2000;
+    if (messages.some((m: Message) => typeof m.content !== "string" || m.content.length > MAX_MESSAGE_LENGTH)) {
+      return NextResponse.json(
+        { error: "Message content is too long. Please keep messages under 2000 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (messages.some((m: Message) => m.role !== "user" && m.role !== "assistant")) {
+      return NextResponse.json({ error: "Invalid message format." }, { status: 400 });
     }
 
     const lastMessage = messages[messages.length - 1];
@@ -119,7 +131,7 @@ export async function POST(req: NextRequest) {
             responseText = fallbackResult.response.text();
           } catch (fallbackError) {
             if (isRetryableError(fallbackError)) {
-              refundRateLimit(ip);
+                      void refundRateLimit(ip);
               return NextResponse.json(
                 {
                   error:
@@ -140,7 +152,7 @@ export async function POST(req: NextRequest) {
         }
       }
     } catch (error) {
-      refundRateLimit(ip);
+      void refundRateLimit(ip);
       throw error;
     }
 

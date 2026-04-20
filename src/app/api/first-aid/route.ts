@@ -54,6 +54,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const MAX_MESSAGE_LENGTH = 2000;
+    if (messages.some((m: Message) => typeof m.content !== "string" || m.content.length > MAX_MESSAGE_LENGTH)) {
+      return NextResponse.json(
+        { error: "Message content is too long. Please keep messages under 2000 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (messages.some((m: Message) => m.role !== "user" && m.role !== "assistant")) {
+      return NextResponse.json({ error: "Invalid message format." }, { status: 400 });
+    }
+
     const lastMessage = messages[messages.length - 1];
     const ip = getClientIP(req);
 
@@ -96,7 +108,7 @@ export async function POST(req: NextRequest) {
             responseText = fallbackResult.response.text();
           } catch (fallbackError) {
             if (isRetryableError(fallbackError)) {
-              refundRateLimit(ip);
+              void refundRateLimit(ip);
               return NextResponse.json(
                 {
                   error:
@@ -117,7 +129,7 @@ export async function POST(req: NextRequest) {
         }
       }
     } catch (error) {
-      refundRateLimit(ip);
+      void refundRateLimit(ip);
       throw error;
     }
 

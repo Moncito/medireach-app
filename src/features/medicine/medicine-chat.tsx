@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   Baby,
   WifiOff,
+  LogIn,
 } from "lucide-react";
 
 interface Message {
@@ -62,6 +63,7 @@ export function MedicineChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
   const conversationIdRef = useRef<string | null>(null);
+  const isSavingRef = useRef(false);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -70,9 +72,7 @@ export function MedicineChat() {
     fetch("/api/medicine-info")
       .then((r) => r.json())
       .then((data) => setUsage({ remaining: data.remaining, limit: data.limit }))
-      .catch((err) => {
-        console.warn("Failed to fetch medicine usage:", err);
-      });
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -98,6 +98,8 @@ export function MedicineChat() {
   const saveConversation = useCallback(
     async (allMessages: Message[]) => {
       if (!user?.uid || user.isAnonymous) return;
+      if (isSavingRef.current) return;
+      isSavingRef.current = true;
       const stored: StoredMessage[] = allMessages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -111,8 +113,10 @@ export function MedicineChat() {
         } else {
           await updateConversation(user.uid, conversationIdRef.current, stored);
         }
-      } catch (err) {
-        console.warn("Failed to save medicine conversation:", err);
+      } catch {
+        // Non-critical: conversation history is a convenience feature
+      } finally {
+        isSavingRef.current = false;
       }
     },
     [user]
@@ -202,6 +206,7 @@ export function MedicineChat() {
     setMessages([]);
     setInput("");
     conversationIdRef.current = null;
+    isSavingRef.current = false;
   }
 
   const isRateLimited = usage !== null && usage.remaining <= 0;
@@ -298,11 +303,7 @@ export function MedicineChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={
-                user?.isAnonymous
-                  ? "Sign in to save conversations..."
-                  : "Ask about a medication..."
-              }
+              placeholder="Ask about a medication..."
               rows={1}
               className="flex-1 resize-none rounded-xl border border-border/60 bg-white px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-light outline-none focus:border-accent-lavender/50 focus:ring-2 focus:ring-accent-lavender/10 transition-all"
             />
@@ -318,6 +319,15 @@ export function MedicineChat() {
               )}
             </button>
           </form>
+        )}
+        {user?.isAnonymous && (
+          <div className="flex items-center justify-center gap-1.5 mt-2 text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-1.5">
+            <LogIn className="w-3 h-3 flex-shrink-0" />
+            <span>
+              <a href="/login" className="font-semibold underline underline-offset-2 hover:text-amber-700">Sign in</a>
+              {" "}to save your conversations to history.
+            </span>
+          </div>
         )}
       </div>
     </div>

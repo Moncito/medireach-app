@@ -20,6 +20,7 @@ import {
   Zap,
   Cpu,
   WifiOff,
+  LogIn,
 } from "lucide-react";
 
 interface Message {
@@ -65,6 +66,7 @@ export function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
   const conversationIdRef = useRef<string | null>(null);
+  const isSavingRef = useRef(false);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -101,7 +103,9 @@ export function ChatInterface() {
   /** Persist conversation to Firestore (fire-and-forget) */
   const saveConversation = useCallback(
     async (allMessages: Message[], latestSeverity?: Severity) => {
-      if (!user?.uid || user.isAnonymous) return; // don't save for guests
+      if (!user?.uid || user.isAnonymous) return;
+      if (isSavingRef.current) return; // prevent concurrent saves
+      isSavingRef.current = true;
       const stored: StoredMessage[] = allMessages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -121,8 +125,10 @@ export function ChatInterface() {
             latestSeverity
           );
         }
-      } catch (err) {
-        console.warn("Failed to save conversation:", err);
+      } catch {
+        // Non-critical: conversation history is a convenience feature
+      } finally {
+        isSavingRef.current = false;
       }
     },
     [user]
@@ -225,6 +231,7 @@ export function ChatInterface() {
     setMessages([]);
     setInput("");
     conversationIdRef.current = null;
+    isSavingRef.current = false;
     inputRef.current?.focus();
     fetchUsage();
   }
@@ -350,6 +357,15 @@ export function ChatInterface() {
               <UsageIndicator remaining={usage.remaining} limit={usage.limit} />
             )}
           </div>
+          {user?.isAnonymous && (
+            <div className="flex items-center justify-center gap-1.5 mt-2 text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-1.5">
+              <LogIn className="w-3 h-3 flex-shrink-0" />
+              <span>
+                <a href="/login" className="font-semibold underline underline-offset-2 hover:text-amber-700">Sign in</a>
+                {" "}to save your conversations to history.
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>

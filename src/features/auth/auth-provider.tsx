@@ -31,9 +31,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Create / update user document in Firestore (non-blocking)
       if (firebaseUser && !firebaseUser.isAnonymous) {
-        ensureUserDocument(firebaseUser).catch((err) =>
-          console.warn("Failed to sync user profile:", err)
-        );
+        ensureUserDocument(firebaseUser).catch(() => {
+          // Non-critical: profile sync failure doesn't affect auth
+        });
       }
     });
     return unsubscribe;

@@ -114,7 +114,7 @@ export async function deleteJournalEntry(uid: string, entryId: string): Promise<
 }
 
 export async function getJournalEntries(uid: string): Promise<JournalEntry[]> {
-  const q = query(journalCollection(uid), orderBy("date", "desc"), orderBy("createdAt", "desc"));
+  const q = query(journalCollection(uid), orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs
     .map((d) => {

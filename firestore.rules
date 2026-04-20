@@ -30,6 +30,27 @@ service cloud.firestore {
                     && request.resource.data.messages.size() <= 100;
     }
 
+    // User journal sub-collection
+    match /users/{userId}/journal/{entryId} {
+      function isOwner() {
+        return request.auth != null
+               && request.auth.uid == userId
+               && !(request.auth.token.firebase.sign_in_provider == 'anonymous');
+      }
+
+      allow read, delete: if isOwner();
+      allow create: if isOwner()
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() <= 100
+                    && request.resource.data.content is string
+                    && request.resource.data.content.size() <= 2000;
+      allow update: if isOwner()
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() <= 100
+                    && request.resource.data.content is string
+                    && request.resource.data.content.size() <= 2000;
+    }
+
     // Block all other access by default
     match /{document=**} {
       allow read, write: if false;
