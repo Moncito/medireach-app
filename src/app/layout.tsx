@@ -29,6 +29,13 @@ export const metadata: Metadata = {
   description:
     "AI-powered symptom triage, first aid guides, medicine safety checker, and family health journal — accessible anywhere, even offline.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },
+    ],
+    apple: { url: "/icons/icon-192.svg", type: "image/svg+xml" },
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
