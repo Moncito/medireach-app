@@ -20,8 +20,8 @@ import {
   Zap,
   Cpu,
   WifiOff,
-  LogIn,
 } from "lucide-react";
+import { AnonymousSaveBanner } from "@/components/ui/anonymous-save-banner";
 
 interface Message {
   id: string;
@@ -125,8 +125,11 @@ export function ChatInterface() {
             latestSeverity
           );
         }
-      } catch {
+      } catch (err) {
         // Non-critical: conversation history is a convenience feature
+        if (process.env.NODE_ENV !== "production") {
+          console.debug("[saveConversation] failed:", err, { uid: user?.uid, conversationId: conversationIdRef.current });
+        }
       } finally {
         isSavingRef.current = false;
       }
@@ -357,15 +360,7 @@ export function ChatInterface() {
               <UsageIndicator remaining={usage.remaining} limit={usage.limit} />
             )}
           </div>
-          {user?.isAnonymous && (
-            <div className="flex items-center justify-center gap-1.5 mt-2 text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-1.5">
-              <LogIn className="w-3 h-3 flex-shrink-0" />
-              <span>
-                <a href="/login" className="font-semibold underline underline-offset-2 hover:text-amber-700">Sign in</a>
-                {" "}to save your conversations to history.
-              </span>
-            </div>
-          )}
+          {user?.isAnonymous && <AnonymousSaveBanner />}
         </div>
       </div>
     </div>

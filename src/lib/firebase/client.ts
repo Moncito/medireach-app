@@ -13,10 +13,16 @@ const firebaseConfig = {
 
 // Validate required config at startup so misconfigured deployments fail fast
 const requiredKeys = ["apiKey", "authDomain", "projectId", "appId"] as const;
+const envVarNames: Record<typeof requiredKeys[number], string> = {
+  apiKey: "NEXT_PUBLIC_FIREBASE_API_KEY",
+  authDomain: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+  projectId: "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+  appId: "NEXT_PUBLIC_FIREBASE_APP_ID",
+};
 for (const key of requiredKeys) {
   if (!firebaseConfig[key]) {
     throw new Error(
-      `Firebase configuration error: NEXT_PUBLIC_FIREBASE_${key.replace(/([A-Z])/g, "_$1").toUpperCase()} is not set. ` +
+      `Firebase configuration error: ${envVarNames[key]} is not set. ` +
         "Check your environment variables."
     );
   }

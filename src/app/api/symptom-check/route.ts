@@ -31,7 +31,7 @@ function isRetryableError(error: unknown): boolean {
 export async function GET(req: NextRequest) {
   // Usage check endpoint — returns remaining quota without consuming
   const ip = getClientIP(req);
-  const usage = await checkRateLimit(ip);
+  const usage = checkRateLimit(ip);
   return NextResponse.json({
     remaining: usage.remaining,
     limit: usage.limit,
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
             responseText = fallbackResult.response.text();
           } catch (fallbackError) {
             if (isRetryableError(fallbackError)) {
-                      void refundRateLimit(ip);
+              void refundRateLimit(ip);
               return NextResponse.json(
                 {
                   error:

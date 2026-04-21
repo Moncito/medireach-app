@@ -27,7 +27,8 @@ function createAdminApp(): App {
 }
 
 function getAdminApp(): App {
-  return getApps().length > 0 ? getApps()[0] : createAdminApp();
+  const apps = getApps();
+  return apps.length > 0 ? apps[0] : createAdminApp();
 }
 
 export const adminDb = getFirestore(getAdminApp());

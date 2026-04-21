@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
     const cleaned = cleanResponse(responseText);
 
     if (!cleaned.trim()) {
-      refundRateLimit(ip);
+      void refundRateLimit(ip);
       return NextResponse.json(
         {
           error: "AI service returned an empty response. Please try again.",

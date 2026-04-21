@@ -245,8 +245,15 @@ export default function JournalPage() {
           <p className="text-sm text-muted">Loading your journal...</p>
         </div>
       ) : fetchError ? (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
-          {fetchError}
+        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 flex items-center justify-between">
+          <span>{fetchError}</span>
+          <button
+            onClick={fetchEntries}
+            disabled={loading}
+            className="ml-3 shrink-0 text-xs font-semibold underline underline-offset-2 hover:text-red-700 disabled:opacity-50"
+          >
+            {loading ? "Retrying…" : "Try again"}
+          </button>
         </div>
       ) : entries.length === 0 && !showForm ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
