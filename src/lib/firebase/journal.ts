@@ -114,7 +114,10 @@ export async function deleteJournalEntry(uid: string, entryId: string): Promise<
 }
 
 export async function getJournalEntries(uid: string): Promise<JournalEntry[]> {
-  const q = query(journalCollection(uid), orderBy("date", "desc"), orderBy("createdAt", "desc"));
+  // Safe to order by createdAt only: createJournalEntry() always sets createdAt via
+  // serverTimestamp() and updateJournalEntry() preserves it, so documents without
+  // createdAt should not exist in normal flows.
+  const q = query(journalCollection(uid), orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs
     .map((d) => {

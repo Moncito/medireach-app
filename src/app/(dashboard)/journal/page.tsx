@@ -28,6 +28,7 @@ export default function JournalPage() {
   const { user } = useAuth();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,10 +38,12 @@ export default function JournalPage() {
   const fetchEntries = useCallback(async () => {
     if (!user?.uid || user.isAnonymous) return;
     setLoading(true);
+    setFetchError(null);
     try {
       const data = await getJournalEntries(user.uid);
       setEntries(data);
     } catch (err) {
+      setFetchError("Failed to load journal entries. Please refresh the page.");
       console.error("Failed to fetch journal entries:", err);
     } finally {
       setLoading(false);
@@ -240,6 +243,17 @@ export default function JournalPage() {
         <div className="flex flex-col items-center justify-center py-20">
           <Loader2 className="w-6 h-6 text-accent-mint animate-spin mb-3" />
           <p className="text-sm text-muted">Loading your journal...</p>
+        </div>
+      ) : fetchError ? (
+        <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 flex items-center justify-between">
+          <span>{fetchError}</span>
+          <button
+            onClick={fetchEntries}
+            disabled={loading}
+            className="ml-3 shrink-0 text-xs font-semibold underline underline-offset-2 hover:text-red-700 disabled:opacity-50"
+          >
+            {loading ? "Retrying…" : "Try again"}
+          </button>
         </div>
       ) : entries.length === 0 && !showForm ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">

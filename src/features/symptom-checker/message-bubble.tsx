@@ -120,7 +120,12 @@ export function MessageBubble({
             <p className="whitespace-pre-wrap">{content}</p>
           ) : (
             <div className="prose prose-sm prose-neutral max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ol]:mb-2 [&>li]:mb-0.5">
-              <ReactMarkdown>{content}</ReactMarkdown>
+              <ReactMarkdown
+                allowedElements={["p", "br", "strong", "em", "ul", "ol", "li", "code", "pre", "blockquote", "h3", "h4"]}
+                unwrapDisallowed
+              >
+                {content}
+              </ReactMarkdown>
             </div>
           )}
         </div>

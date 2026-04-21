@@ -21,6 +21,7 @@ import {
   Cpu,
   WifiOff,
 } from "lucide-react";
+import { AnonymousSaveBanner } from "@/components/ui/anonymous-save-banner";
 
 interface Message {
   id: string;
@@ -65,6 +66,7 @@ export function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
   const conversationIdRef = useRef<string | null>(null);
+  const isSavingRef = useRef(false);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -101,7 +103,9 @@ export function ChatInterface() {
   /** Persist conversation to Firestore (fire-and-forget) */
   const saveConversation = useCallback(
     async (allMessages: Message[], latestSeverity?: Severity) => {
-      if (!user?.uid || user.isAnonymous) return; // don't save for guests
+      if (!user?.uid || user.isAnonymous) return;
+      if (isSavingRef.current) return; // prevent concurrent saves
+      isSavingRef.current = true;
       const stored: StoredMessage[] = allMessages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -122,7 +126,12 @@ export function ChatInterface() {
           );
         }
       } catch (err) {
-        console.warn("Failed to save conversation:", err);
+        // Non-critical: conversation history is a convenience feature
+        if (process.env.NODE_ENV !== "production") {
+          console.debug("[saveConversation] failed:", err, { uid: user?.uid, conversationId: conversationIdRef.current });
+        }
+      } finally {
+        isSavingRef.current = false;
       }
     },
     [user]
@@ -225,6 +234,7 @@ export function ChatInterface() {
     setMessages([]);
     setInput("");
     conversationIdRef.current = null;
+    isSavingRef.current = false;
     inputRef.current?.focus();
     fetchUsage();
   }
@@ -350,6 +360,7 @@ export function ChatInterface() {
               <UsageIndicator remaining={usage.remaining} limit={usage.limit} />
             )}
           </div>
+          {user?.isAnonymous && <AnonymousSaveBanner />}
         </div>
       </div>
     </div>

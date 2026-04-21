@@ -3,6 +3,13 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Shared ownership check: authenticated, non-anonymous, owns the document.
+    function isOwner(userId) {
+      return request.auth != null
+             && request.auth.uid == userId
+             && !(request.auth.token.firebase.sign_in_provider == 'anonymous');
+    }
+
     // User profile document — owned by the user
     match /users/{userId} {
       allow read: if request.auth != null
@@ -17,17 +24,39 @@ service cloud.firestore {
 
     // User conversation sub-collection
     match /users/{userId}/conversations/{conversationId} {
-      function isOwner() {
-        return request.auth != null
-               && request.auth.uid == userId
-               && !(request.auth.token.firebase.sign_in_provider == 'anonymous');
-      }
+      allow read, delete: if isOwner(userId);
+      allow create: if isOwner(userId)
+                    && request.resource.data.messages.size() <= 100;
+      allow update: if isOwner(userId)
+                    && request.resource.data.messages.size() <= 100;
+    }
 
-      allow read, delete: if isOwner();
-      allow create: if isOwner()
-                    && request.resource.data.messages.size() <= 100;
-      allow update: if isOwner()
-                    && request.resource.data.messages.size() <= 100;
+    // User journal sub-collection
+    match /users/{userId}/journal/{entryId} {
+      allow read, delete: if isOwner(userId);
+      allow create: if isOwner(userId)
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() <= 100
+                    && request.resource.data.content is string
+                    && request.resource.data.content.size() <= 2000
+                    && request.resource.data.mood in ['great', 'good', 'okay', 'poor', 'bad']
+                    && request.resource.data.tags is list
+                    && request.resource.data.tags.size() <= 10
+                    && request.resource.data.date is string
+                    && request.resource.data.date.matches('\\d{4}-\\d{2}-\\d{2}')
+                    && request.resource.data.createdAt is timestamp
+                    && request.resource.data.updatedAt is timestamp;
+      allow update: if isOwner(userId)
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() <= 100
+                    && request.resource.data.content is string
+                    && request.resource.data.content.size() <= 2000
+                    && request.resource.data.mood in ['great', 'good', 'okay', 'poor', 'bad']
+                    && request.resource.data.tags is list
+                    && request.resource.data.tags.size() <= 10
+                    && request.resource.data.date is string
+                    && request.resource.data.date.matches('\\d{4}-\\d{2}-\\d{2}')
+                    && request.resource.data.updatedAt is timestamp;
     }
 
     // Block all other access by default

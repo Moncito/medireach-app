@@ -64,7 +64,6 @@ export async function fetchNearbyFacilities(
   const cacheKey = getCacheKey(lat, lon, radiusMeters);
   const cached = getCached(cacheKey);
   if (cached) {
-    console.log(`[Overpass] Cache hit: ${cached.length} facilities`);
     return cached;
   }
 
@@ -89,8 +88,6 @@ export async function fetchNearbyFacilities(
           await new Promise((r) => setTimeout(r, 1500));
         }
 
-        console.log(`[Overpass] Trying ${endpoint} (attempt ${attempt + 1})`);
-
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 30000);
 
@@ -104,13 +101,11 @@ export async function fetchNearbyFacilities(
         clearTimeout(timeout);
 
         if (res.status === 429 || res.status === 503) {
-          console.warn(`[Overpass] ${endpoint} rate limited (${res.status})`);
           lastError = new Error(`Rate limited: ${res.status}`);
-          break; // Skip retries for this endpoint, try next
+          break;
         }
 
         if (!res.ok) {
-          console.warn(`[Overpass] ${endpoint} returned ${res.status}`);
           lastError = new Error(`HTTP ${res.status}`);
           continue;
         }
@@ -118,15 +113,12 @@ export async function fetchNearbyFacilities(
         data = await res.json();
 
         if (data?.elements && data.elements.length > 0) {
-          console.log(`[Overpass] Success from ${endpoint}: ${data.elements.length} elements`);
           break;
         }
 
         // Got response but 0 elements — try next endpoint
-        console.warn(`[Overpass] ${endpoint} returned 0 elements`);
         lastError = new Error("Empty response");
       } catch (err) {
-        console.warn(`[Overpass] ${endpoint} attempt ${attempt + 1} failed:`, err);
         lastError = err;
         continue;
       }
@@ -138,8 +130,6 @@ export async function fetchNearbyFacilities(
   if (!data?.elements) {
     throw lastError instanceof Error ? lastError : new Error("All Overpass endpoints failed");
   }
-
-  console.log(`[Overpass] Got ${data.elements.length} raw elements`);
 
   const seen = new Set<string>();
 

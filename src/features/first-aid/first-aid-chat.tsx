@@ -18,6 +18,7 @@ import {
   Bug,
   WifiOff,
 } from "lucide-react";
+import { AnonymousSaveBanner } from "@/components/ui/anonymous-save-banner";
 
 interface Message {
   id: string;
@@ -61,6 +62,7 @@ export function FirstAidChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
   const conversationIdRef = useRef<string | null>(null);
+  const isSavingRef = useRef(false);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -69,9 +71,7 @@ export function FirstAidChat() {
     fetch("/api/first-aid")
       .then((r) => r.json())
       .then((data) => setUsage({ remaining: data.remaining, limit: data.limit }))
-      .catch((err) => {
-        console.warn("Failed to fetch first aid usage:", err);
-      });
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -97,6 +97,8 @@ export function FirstAidChat() {
   const saveConversation = useCallback(
     async (allMessages: Message[]) => {
       if (!user?.uid || user.isAnonymous) return;
+      if (isSavingRef.current) return;
+      isSavingRef.current = true;
       const stored: StoredMessage[] = allMessages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -111,7 +113,12 @@ export function FirstAidChat() {
           await updateConversation(user.uid, conversationIdRef.current, stored);
         }
       } catch (err) {
-        console.warn("Failed to save first aid conversation:", err);
+        // Non-critical: conversation history is a convenience feature
+        if (process.env.NODE_ENV !== "production") {
+          console.debug("[saveConversation] failed:", err, { uid: user?.uid, conversationId: conversationIdRef.current });
+        }
+      } finally {
+        isSavingRef.current = false;
       }
     },
     [user]
@@ -199,6 +206,7 @@ export function FirstAidChat() {
     setMessages([]);
     setInput("");
     conversationIdRef.current = null;
+    isSavingRef.current = false;
     inputRef.current?.focus();
     fetchUsage();
   }
@@ -328,6 +336,7 @@ export function FirstAidChat() {
               </div>
             )}
           </div>
+          {user?.isAnonymous && <AnonymousSaveBanner />}
         </div>
       </div>
     </div>

@@ -18,6 +18,7 @@ import {
   Baby,
   WifiOff,
 } from "lucide-react";
+import { AnonymousSaveBanner } from "@/components/ui/anonymous-save-banner";
 
 interface Message {
   id: string;
@@ -62,6 +63,7 @@ export function MedicineChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
   const conversationIdRef = useRef<string | null>(null);
+  const isSavingRef = useRef(false);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -70,9 +72,7 @@ export function MedicineChat() {
     fetch("/api/medicine-info")
       .then((r) => r.json())
       .then((data) => setUsage({ remaining: data.remaining, limit: data.limit }))
-      .catch((err) => {
-        console.warn("Failed to fetch medicine usage:", err);
-      });
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -98,6 +98,8 @@ export function MedicineChat() {
   const saveConversation = useCallback(
     async (allMessages: Message[]) => {
       if (!user?.uid || user.isAnonymous) return;
+      if (isSavingRef.current) return;
+      isSavingRef.current = true;
       const stored: StoredMessage[] = allMessages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -112,7 +114,12 @@ export function MedicineChat() {
           await updateConversation(user.uid, conversationIdRef.current, stored);
         }
       } catch (err) {
-        console.warn("Failed to save medicine conversation:", err);
+        // Non-critical: conversation history is a convenience feature
+        if (process.env.NODE_ENV !== "production") {
+          console.debug("[saveConversation] failed:", err, { uid: user?.uid, conversationId: conversationIdRef.current });
+        }
+      } finally {
+        isSavingRef.current = false;
       }
     },
     [user]
@@ -202,6 +209,7 @@ export function MedicineChat() {
     setMessages([]);
     setInput("");
     conversationIdRef.current = null;
+    isSavingRef.current = false;
   }
 
   const isRateLimited = usage !== null && usage.remaining <= 0;
@@ -298,11 +306,7 @@ export function MedicineChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={
-                user?.isAnonymous
-                  ? "Sign in to save conversations..."
-                  : "Ask about a medication..."
-              }
+              placeholder="Ask about a medication..."
               rows={1}
               className="flex-1 resize-none rounded-xl border border-border/60 bg-white px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-light outline-none focus:border-accent-lavender/50 focus:ring-2 focus:ring-accent-lavender/10 transition-all"
             />
@@ -319,6 +323,7 @@ export function MedicineChat() {
             </button>
           </form>
         )}
+        {user?.isAnonymous && <AnonymousSaveBanner />}
       </div>
     </div>
   );
