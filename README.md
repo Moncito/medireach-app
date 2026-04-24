@@ -316,7 +316,7 @@ MediReach is optimized for deployment on **Vercel**:
 
 The PWA service worker and manifest are automatically generated during the production build. No additional configuration is required.
 
-For other platforms (Netlify, Railway, self-hosted), ensure the platform supports Next.js serverless functions and set the environment variables accordingly.
+For other platforms (Netlify, Railway, Vercel, self-hosted), ensure the platform supports Next.js serverless functions and set the environment variables accordingly.
 
 ---
 
