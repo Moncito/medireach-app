@@ -326,4 +326,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-**Disclaimer**: MediReach provides general health information and AI-generated guidance for educational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider for medical concerns. In case of emergency, call your local emergency number immediately.
+**Disclaimer**: MediReach provides general health information and AI-generated guidance for educational purposes only. It is not a substitute for professional medical advice, diagnosis, research or treatment. Always consult a qualified healthcare provider for medical concerns. In case of emergency, call your local emergency number immediately.
